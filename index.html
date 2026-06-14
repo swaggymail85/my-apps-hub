@@ -14,6 +14,7 @@
             margin: 0;
             padding: 10px;
             min-height: 100vh;
+            overflow: hidden; /* Keeps the desktop fixed */
         }
 
         /* 3-Column Desktop Grid */
@@ -21,7 +22,7 @@
             display: grid;
             grid-template-columns: 180px 1fr 180px;
             gap: 15px;
-            min-height: calc(100vh - 20px);
+            height: calc(100vh - 20px);
         }
 
         /* Retro Desktop Ad Columns styled as inset panels */
@@ -49,9 +50,10 @@
             border-right: 2px solid #404040;
             border-bottom: 2px solid #404040;
             box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-            padding: 4px; /* Tight Win98 window spacing */
+            padding: 4px; 
             display: flex;
             flex-direction: column;
+            height: 100%;
         }
 
         /* Standard Retro Title Bar */
@@ -69,7 +71,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* Fake window action buttons just for style */
+        /* Window action buttons */
         .title-bar-controls button {
             padding: 0 4px;
             font-size: 10px;
@@ -89,6 +91,7 @@
             flex-direction: column;
             align-items: center;
             flex: 1;
+            min-height: 0; /* Allows inner content to structure properly */
         }
 
         h1 {
@@ -100,7 +103,7 @@
         .subtitle {
             color: #555;
             font-size: 11px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         /* Classic Beveled Push Button for Donations */
@@ -115,7 +118,7 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: inset 1px 1px 0px #fff;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .donate-btn:active {
@@ -127,20 +130,56 @@
             padding: 7px 19px 5px 21px;
         }
 
+        /* BACK BUTTON for when an app is open */
+        .back-btn {
+            display: none; /* Hidden by default */
+            align-self: flex-start;
+            background-color: #d4d0c8;
+            border-top: 2px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            padding: 4px 12px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .back-btn:active {
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+        }
+
         /* The App Program Manager Grid */
         .apps-grid {
             border-top: 2px solid #404040;
             border-left: 2px solid #404040;
             border-right: 2px solid #ffffff;
             border-bottom: 2px solid #ffffff;
-            background: #ffffff; /* File manager window inside white area */
+            background: #ffffff; 
             padding: 15px;
             width: 100%;
+            height: 100%;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             gap: 20px;
-            min-height: 250px;
+            overflow-y: auto;
             align-content: start;
+        }
+
+        /* Smooth Iframe Container for App Execution */
+        #app-frame {
+            display: none; /* Hidden until an app is clicked */
+            width: 100%;
+            height: 100%;
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            background: #fff;
         }
 
         /* Vintage Shortcut Icon Style */
@@ -156,7 +195,6 @@
             border: 1px dashed transparent;
         }
 
-        /* Highlighting style like selecting an icon on a classic desktop */
         .app-card:hover {
             background-color: #000080;
             color: #ffffff;
@@ -191,43 +229,49 @@
     <div class="desktop-container">
         
         <aside class="desktop-ad">
-            AD_SLOT_LEFT<br><br>160 x 600<br>WAITING FOR PLACEMENT
+            AD_SLOT_LEFT<br><br>160 x 600<br>STAYS ON SCREEN
         </aside>
 
         <main class="app-window">
             <div class="title-bar">
-                <span class="title-bar-text">📁 Application Manager - C:\WebApps</span>
+                <span class="title-bar-text" id="window-title">📁 Application Manager - C:\WebApps</span>
                 <div class="title-bar-controls">
                     <button>_</button>
                     <button>🗖</button>
-                    <button>X</button>
+                    <button onclick="closeApp()">X</button>
                 </div>
             </div>
 
             <div class="window-body">
-                <h1>Software Directory</h1>
-                <div class="subtitle">Select a module to execute program natively in memory</div>
                 
-                <button class="donate-btn" onclick="window.open('https://ko-fi.com', '_blank')">
-                    Support System (Donate)
-                </button>
+                <div id="main-headers" style="width: 100%; text-align: center;">
+                    <h1>Software Directory</h1>
+                    <div class="subtitle">Select a module to execute program natively in memory</div>
+                    
+                    <button class="donate-btn" onclick="window.open('https://ko-fi.com', '_blank')">
+                        Support System (Donate)
+                    </button>
+                </div>
+
+                <button class="back-btn" id="back-button" onclick="closeApp()">🡰 Back to Directory</button>
 
                 <div class="apps-grid" id="apps-container">
                     <div style="grid-column: 1/-1; text-align: center; color: #555; padding-top: 50px;">
                         Reading file tree indices...
                     </div>
                 </div>
+
+                <iframe id="app-frame" src=""></iframe>
             </div>
         </main>
 
         <aside class="desktop-ad">
-            AD_SLOT_RIGHT<br><br>160 x 600<br>WAITING FOR PLACEMENT
+            AD_SLOT_RIGHT<br><br>160 x 600<br>STAYS ON SCREEN
         </aside>
 
     </div>
 
     <script>
-        // Automatic GitHub Directory Read System
         const username = 'swaggymail85';
         const repo = 'my-apps-hub';
         
@@ -238,14 +282,12 @@
                 const files = await response.json();
                 const container = document.getElementById('apps-container');
                 
-                container.innerHTML = ''; // Flash background clear
+                container.innerHTML = ''; 
 
-                // Array of genuine old school OS app emojis
                 const winIcons = ["💾", "💽", "🛠️", "⚙️", "🎨", "🖼️", "📊", "📷"];
 
                 files.forEach((file, index) => {
                     if (file.name.endsWith('.html')) {
-                        // Formatting name to cleanly resemble Win95 shortcuts
                         let displayTitle = file.name
                             .replace('.html', '')
                             .split('-')
@@ -254,10 +296,9 @@
 
                         let selectedIcon = winIcons[index % winIcons.length];
 
-                        // Build individual executable desktop shortcut
-                        const card = document.createElement('a');
-                        card.href = `apps/${file.name}`;
+                        const card = document.createElement('div');
                         card.className = 'app-card';
+                        card.onclick = () => launchApp(`apps/${file.name}`, displayTitle);
                         card.innerHTML = `
                             <div class="app-icon">${selectedIcon}</div>
                             <div class="app-title">${displayTitle}</div>
@@ -273,8 +314,33 @@
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('apps-container').innerHTML = '<div style="grid-column:1/-1; text-align:center; color:red; padding-top:50px;">[Fatal System Error] Unable to open link stream.</div>';
+                document.getElementById('apps-container').innerHTML = '<div style="grid-column:1/-1; text-align:center; color:red; padding-top:50px;">[Fatal System Error] Link stream broken.</div>';
             }
+        }
+
+        // FUNCTION TO LAUNCH THE APP INSIDE THE IFRAME
+        function launchApp(url, title) {
+            document.getElementById('main-headers').style.display = 'none'; // Hide headers/donate button
+            document.getElementById('apps-container').style.display = 'none'; // Hide grid
+            
+            const frame = document.getElementById('app-frame');
+            frame.src = url; // Inject the app file
+            frame.style.display = 'block'; // Show app frame
+            
+            document.getElementById('back-button').style.display = 'block'; // Show back arrow
+            document.getElementById('window-title').innerText = `💻 Running: C:\\WebApps\\${title.toLowerCase().replace(' ', '_')}.exe`; // Change title bar
+        }
+
+        // FUNCTION TO CLOSE APP AND GO BACK TO SYSTEM DIRECTORY
+        function closeApp() {
+            const frame = document.getElementById('app-frame');
+            frame.src = ''; // Clear memory
+            frame.style.display = 'none'; // Hide frame
+            
+            document.getElementById('main-headers').style.display = 'block'; // Bring headers/donate button back!
+            document.getElementById('apps-container').style.display = 'grid'; // Show icons again
+            document.getElementById('back-button').style.display = 'none'; // Hide back arrow
+            document.getElementById('window-title').innerText = "📁 Application Manager - C:\\WebApps"; // Reset title bar
         }
 
         loadApps();
