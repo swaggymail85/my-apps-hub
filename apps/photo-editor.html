@@ -1,1 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VHS & DIGITAL DISTORTION SYSTEM</title>
+    <style>
+        /* 90s/2000s Win98 & Multimedia Application Theme */
+        body {
+            background-color: #3a6ea5; /* Classic retro desktop blue */
+            color: #000000;
+            font-family: "MS Sans Serif", Geneva, sans-serif;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
 
+        /* The Main App Window Container */
+        .app-window {
+            background-color: #d4d0c8;
+            border-top: 2px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* 90s Style Title Bar */
+        .title-bar {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            color: #ffffff;
+            padding: 4px 6px;
+            font-weight: bold;
+            font-family: inherit;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #777;
+            text-shadow: 1px 1px #000;
+        }
+
+        /* Heavy Beveled Inset Panel for Controls */
+        .controls-panel {
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            background-color: #cbd2d6;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: bold;
+            flex: 1;
+            text-shadow: 1px 1px 0px #ffffff;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1.5;
+            justify-content: flex-end;
+        }
+
+        /* Metallic/Beveled Custom Sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 130px;
+            background: #a0a0a0;
+            height: 6px;
+            border-top: 1px solid #404040;
+            border-left: 1px solid #404040;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 18px;
+            background-color: #d4d0c8;
+            border-top: 1px solid #fff;
+            border-left: 1px solid #fff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            cursor: pointer;
+            box-shadow: inset 1px 1px 1px #fff;
+        }
+
+        /* High-contrast Digital Inset Input Boxes */
+        input[type="number"] {
+            width: 45px;
+            background: #ffffff;
+            color: #000000;
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            padding: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Classic File Input Button Box */
+        .file-upload-box {
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            background: #ffffff;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+
+        input[type="file"] {
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        /* Canvas Screen Frame */
+        .preview-frame {
+            border-top: 3px solid #404040;
+            border-left: 3px solid #404040;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            background: #000000;
+            padding: 4px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Industrial Beveled Push Action Buttons */
+        .action-btn {
+            margin-top: 15px;
+            width: 100%;
+            background-color: #d4d0c8;
+            border-top: 2px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            padding: 10px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: inset 1px 1px 0px #fff;
+            display: none;
+        }
+
+        .action-btn:active {
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            box-shadow: none;
+            padding: 11px 9px 9px 11px; /* Subtle pixel shift down-right when pressed */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-window">
+        <div class="title-bar">VHS & EMBOSS ENGINE v1.04</div>
+
+        <div class="file-upload-box">
+            <input type="file" id="imageLoader" accept="image/*">
+        </div>
+        
+        <div class="controls-panel">
+            <div class="control-group">
+                <label for="emboss">Bevel & Emboss:</label>
+                <div class="input-wrapper">
+                    <input type="range" id="emboss" min="0" max="100" value="30">
+                    <input type="number" id="embossNum" min="0" max="100" value="30">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="compression">Low Bitrate Artifacts:</label>
+                <div class="input-wrapper">
+                    <input type="range" id="compression" min="0" max="95" value="65">
+                    <input type="number" id="compressionNum" min="0" max="95" value="65">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="pixelation">Pixelation Matrix:</label>
+                <div class="input-wrapper">
+                    <input type="range" id="pixelation" min="1" max="15" value="3">
+                    <input type="number" id="pixelationNum" min="1" max="15" value="3">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="colorOffset">Color Offset (RGB):</label>
+                <div class="input-wrapper">
+                    <input type="range" id="colorOffset" min="0" max="20" value="6">
+                    <input type="number" id="colorOffsetNum" min="0" max="20" value="6">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="exposure">Blown Exposure:</label>
+                <div class="input-wrapper">
+                    <input type="range" id="exposure" min="0" max="60" value="25">
+                    <input type="number" id="exposureNum" min="0" max="60" value="25">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="noise">Analog Video Noise:</label>
+                <div class="input-wrapper">
+                    <input type="range" id="noise" min="0" max="50" value="15">
+                    <input type="number" id="noiseNum" min="0" max="50" value="15">
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-frame">
+            <canvas id="imageCanvas"></canvas>
+        </div>
+
+        <button class="action-btn" id="downloadBtn">SAVE IMAGE TO DISK</button>
+    </div>
+
+    <script>
+        const imageLoader = document.getElementById('imageLoader');
+        const canvas = document.getElementById('imageCanvas');
+        const ctx = canvas.getContext('2d');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        const sliders = ['emboss', 'compression', 'pixelation', 'colorOffset', 'exposure', 'noise'];
+        
+        // Link Sliders and inputs up dynamically
+        sliders.forEach(id => {
+            const range = document.getElementById(id);
+            const num = document.getElementById(id + 'Num');
+            
+            range.addEventListener('input', (e) => {
+                num.value = e.target.value;
+                if (img.src) processFilters();
+            });
+            
+            num.addEventListener('input', (e) => {
+                let val = parseInt(e.target.value) || 0;
+                const min = parseInt(range.min);
+                const max = parseInt(range.max);
+                if(val < min) val = min;
+                if(val > max) val = max;
+                
+                range.value = val;
+                if (img.src) processFilters();
+            });
+        });
+
+        let img = new Image();
+
+        // Listen for new file uploads
+        imageLoader.addEventListener('change', handleImage, false);
+
+        function handleImage(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    // Notice: We directly process filters here using whatever values 
+                    // are currently set on the inputs, completely preserving user state!
+                    processFilters();
+                    downloadBtn.style.display = "block";
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+
+        function processFilters() {
+            applyBaseEffects();
+
+            // Low Bitrate JPEG Artifact Emulation
+            const compVal = parseInt(document.getElementById('compression').value);
+            if (compVal > 0) {
+                const quality = Math.max(0.01, (100 - compVal) / 100);
+                const tempSrc = canvas.toDataURL('image/jpeg', quality);
+                const compressedImg = new Image();
+                compressedImg.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(compressedImg, 0, 0);
+                };
+                compressedImg.src = tempSrc;
+            }
+        }
+
+        function applyBaseEffects() {
+            const w = canvas.width;
+            const h = canvas.height;
+            
+            const pixelSize = parseInt(document.getElementById('pixelation').value);
+            const offset = parseInt(document.getElementById('colorOffset').value);
+            const noiseAmp = parseInt(document.getElementById('noise').value);
+            const exposure = parseInt(document.getElementById('exposure').value);
+            const embossMix = parseInt(document.getElementById('emboss').value) / 100;
+
+            // Pixelation Render
+            if (pixelSize > 1) {
+                const smallW = Math.ceil(w / pixelSize);
+                const smallH = Math.ceil(h / pixelSize);
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(img, 0, 0, smallW, smallH);
+                ctx.drawImage(canvas, 0, 0, smallW, smallH, 0, 0, w, h);
+            } else {
+                ctx.drawImage(img, 0, 0, w, h);
+            }
+
+            let imgData = ctx.getImageData(0, 0, w, h);
+            let data = imgData.data;
+            let originalData = new Uint8ClampedArray(data);
+
+            // Grey Mapping cache for analytical Bevel calculation
+            let grey = new Float32Array(w * h);
+            for (let i = 0; i < data.length; i += 4) {
+                grey[i/4] = (originalData[i] + originalData[i+1] + originalData[i+2]) / 3;
+            }
+
+            for (let y = 0; y < h; y++) {
+                let jitter = (Math.sin(y * 0.15) * (offset * 0.25)) | 0; 
+                
+                for (let x = 0; x < w; x++) {
+                    let idx = (y * w + x) * 4;
+
+                    // Channel misalignment (Chromatic aberration)
+                    let rX = Math.min(w - 1, Math.max(0, x + offset + jitter));
+                    let dataIdxR = (y * w + rX) * 4;
+                    data[idx] = originalData[dataIdxR]; 
+
+                    let bX = Math.min(w - 1, Math.max(0, x - offset - jitter));
+                    let dataIdxB = (y * w + bX) * 4;
+                    data[idx + 2] = originalData[dataIdxB + 2]; 
+
+                    data[idx + 1] = originalData[idx + 1]; 
+
+                    // Directional Relief Overlay Matrix (Bevel Effect)
+                    if (embossMix > 0 && x > 0 && y > 0 && x < w - 1 && y < h - 1) {
+                        let tl = grey[(y - 1) * w + (x - 1)]; 
+                        let br = grey[(y + 1) * w + (x + 1)]; 
+                        let shadowHighlightDiff = (tl - br) * 2; 
+
+                        data[idx]     = Math.min(255, Math.max(0, data[idx] + (shadowHighlightDiff * embossMix)));
+                        data[idx + 1] = Math.min(255, Math.max(0, data[idx + 1] + (shadowHighlightDiff * embossMix)));
+                        data[idx + 2] = Math.min(255, Math.max(0, data[idx + 2] + (shadowHighlightDiff * embossMix)));
+                    }
+
+                    // Saturation Curves & High Gamma Exposure Adjustment
+                    data[idx] = Math.min(255, data[idx] * 1.1 + exposure);     
+                    data[idx + 1] = Math.min(255, data[idx + 1] * 1.05 + (exposure * 0.7)); 
+                    data[idx + 2] = Math.min(255, Math.max(0, data[idx + 2] * 0.85 + (exposure * 0.2)));
+
+                    // Noise Layer Injection
+                    if (noiseAmp > 0) {
+                        let noise = (Math.random() - 0.5) * noiseAmp;
+                        data[idx] = Math.min(255, Math.max(0, data[idx] + noise));
+                        data[idx + 1] = Math.min(255, Math.max(0, data[idx + 1] + noise));
+                        data[idx + 2] = Math.min(255, Math.max(0, data[idx + 2] + noise));
+                    }
+
+                    // Tape Line CRT Interlacing
+                    if (y % 4 === 0) {
+                        data[idx] *= 0.85;
+                        data[idx + 1] *= 0.85;
+                        data[idx + 2] *= 0.85;
+                    }
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        // Export Routine
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'vhs_embossed_render.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    </script>
+</body>
+</html>
