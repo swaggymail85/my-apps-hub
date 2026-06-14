@@ -298,7 +298,7 @@
 
                         const card = document.createElement('div');
                         card.className = 'app-card';
-                        card.onclick = () => launchApp(`apps/${file.name}`, displayTitle);
+                        card.onclick = () => launchApp(`${file.path}`, displayTitle);
                         card.innerHTML = `
                             <div class="app-icon">${selectedIcon}</div>
                             <div class="app-title">${displayTitle}</div>
