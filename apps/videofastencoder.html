@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUE MP4 COMPILER v4.0</title>
+    <style>
+        body {
+            background-color: #3a6ea5;
+            color: #000;
+            font-family: "MS Sans Serif", Geneva, sans-serif;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .app-window {
+            background: #d4d0c8;
+            border-top: 2px solid #fff;
+            border-left: 2px solid #fff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.4);
+            padding: 14px;
+            width: 100%;
+            max-width: 640px;
+        }
+        .title-bar {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            color: #fff;
+            padding: 4px 8px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px #000;
+            font-size: 12px;
+            letter-spacing: 0.3px;
+        }
+
+        /* Panels */
+        .panel {
+            border-top: 2px solid #606060;
+            border-left: 2px solid #606060;
+            border-right: 2px solid #e0e0e0;
+            border-bottom: 2px solid #e0e0e0;
+            background: #c8ccc6;
+            padding: 9px 10px;
+            margin-bottom: 9px;
+        }
+        .panel-label {
+            font-weight: bold;
+            font-size: 10px;
+            color: #000070;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+        }
+
+        /* File rows */
+        .file-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: #fff;
+            border-top: 1px solid #888;
+            border-left: 1px solid #888;
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            padding: 5px 7px;
+            margin-bottom: 5px;
+        }
+        .file-row:last-of-type { margin-bottom: 0; }
+        .file-row-lbl { font-weight: bold; font-size: 11px; min-width: 50px; }
+        .file-row input[type="file"] { flex: 1; font-size: 11px; }
+
+        /* Audio player bar */
+        .audio-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: #111;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            padding: 5px 8px;
+            margin-top: 7px;
+        }
+        .audio-bar .aname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #00ff00; }
+        .audio-bar .adur  { color: #ffff00; min-width: 38px; text-align: right; font-weight: bold; }
+        .play-btn {
+            background: #003300; color: #00ff00;
+            border: 1px solid #00aa00;
+            font-family: 'Courier New', monospace; font-size: 10px;
+            cursor: pointer; padding: 2px 7px; white-space: nowrap;
+        }
+        .play-btn:hover { background: #005500; }
+
+        /* Segmented buttons */
+        .seg-row { display: flex; gap: 2px; flex: 1; }
+        .seg-btn {
+            flex: 1; padding: 3px 4px; text-align: center;
+            background: #d4d0c8;
+            border-top: 2px solid #fff; border-left: 2px solid #fff;
+            border-right: 2px solid #606060; border-bottom: 2px solid #606060;
+            cursor: pointer; font-family: inherit; font-size: 11px; font-weight: bold;
+            white-space: nowrap;
+        }
+        .seg-btn.active {
+            border-top: 2px solid #606060; border-left: 2px solid #606060;
+            border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+            background: #9ab89a; color: #000060;
+        }
+
+        /* Control rows */
+        .ctrl-row {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 7px;
+        }
+        .ctrl-row:last-child { margin-bottom: 0; }
+        .ctrl-lbl { font-weight: bold; font-size: 11px; min-width: 105px; }
+        .ctrl-row select, .ctrl-row input[type="number"] {
+            background: #fff;
+            border-top: 2px solid #606060; border-left: 2px solid #606060;
+            border-right: 1px solid #ddd; border-bottom: 1px solid #ddd;
+            padding: 2px 4px;
+            font-family: 'Courier New', monospace; font-weight: bold; font-size: 11px;
+        }
+        .ctrl-row select { min-width: 130px; }
+        .ctrl-row input[type="number"] { width: 44px; text-align: center; }
+
+        /* Fade rows */
+        .fade-pair { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+        .fade-pair label { font-size: 11px; font-weight: bold; min-width: 80px; }
+        .fade-pair input[type="number"] {
+            width: 42px; text-align: center;
+            background: #fff;
+            border-top: 2px solid #606060; border-left: 2px solid #606060;
+            border-right: 1px solid #ddd; border-bottom: 1px solid #ddd;
+            padding: 2px; font-family: 'Courier New', monospace; font-size: 11px;
+        }
+        .fade-pair span { font-size: 11px; }
+
+        /* Preview */
+        .preview-wrap {
+            background: #000;
+            border-top: 3px solid #505050; border-left: 3px solid #505050;
+            border-right: 2px solid #e0e0e0; border-bottom: 2px solid #e0e0e0;
+            padding: 4px; margin-bottom: 9px;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 140px; overflow: hidden;
+        }
+        canvas { display: block; max-width: 100%; max-height: 300px; width: auto; height: auto; }
+
+        /* Progress */
+        .prog-row {
+            display: none; align-items: center; gap: 8px; margin-bottom: 5px;
+        }
+        .prog-outer {
+            flex: 1; height: 18px; position: relative;
+            border-top: 2px solid #606060; border-left: 2px solid #606060;
+            border-right: 1px solid #ddd; border-bottom: 1px solid #ddd;
+            background: #fff;
+        }
+        .prog-fill { background: #000080; width: 0%; height: 100%; transition: width 0.18s; }
+        .prog-pct {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: bold; mix-blend-mode: difference; color: #fff;
+        }
+        .timer {
+            font-family: 'Courier New', monospace; font-weight: bold;
+            font-size: 13px; min-width: 46px; text-align: right; color: #000080;
+        }
+        .prog-status {
+            display: none; font-size: 10px; font-family: 'Courier New', monospace;
+            color: #00006a; margin-bottom: 7px; padding-left: 1px;
+        }
+
+        /* Log */
+        .log-box {
+            display: none; background: #000; color: #00dd00;
+            font-family: 'Courier New', monospace; font-size: 9px;
+            padding: 4px; max-height: 55px; overflow-y: auto; margin-bottom: 7px;
+        }
+
+        /* Buttons */
+        .abtn {
+            display: block; width: 100%; margin-bottom: 6px;
+            background: #d4d0c8;
+            border-top: 2px solid #fff; border-left: 2px solid #fff;
+            border-right: 2px solid #606060; border-bottom: 2px solid #606060;
+            padding: 8px; font-family: inherit; font-size: 12px;
+            font-weight: bold; cursor: pointer;
+        }
+        .abtn:active {
+            border-top: 2px solid #606060; border-left: 2px solid #606060;
+            border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+            padding: 9px 7px 7px 9px;
+        }
+        .abtn:disabled { color: #888; cursor: default; }
+        #dlBtn { background: #0d5c0d; color: #fff; text-shadow: 1px 1px #000; display: none; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.11.6/ffmpeg.min.js"></script>
+</head>
+<body>
+<div class="app-window">
+    <div class="title-bar">▶ TRUE MP4 ENGINE v4.0 — WIN MEDIA PLAYER COMPATIBLE</div>
+
+    <!-- SOURCE FILES -->
+    <div class="panel">
+        <div class="panel-label">📁 Source Files</div>
+        <div class="file-row">
+            <span class="file-row-lbl">Image:</span>
+            <input type="file" id="imgIn" accept="image/*">
+        </div>
+        <div class="file-row">
+            <span class="file-row-lbl">Audio:</span>
+            <input type="file" id="audIn" accept="audio/*">
+        </div>
+        <div class="audio-bar" id="audioBar">
+            <button class="play-btn" id="playBtn">▶ PLAY</button>
+            <span class="aname" id="aName">—</span>
+            <span class="adur"  id="aDur">0:00</span>
+        </div>
+    </div>
+
+    <!-- OUTPUT SETTINGS -->
+    <div class="panel">
+        <div class="panel-label">⚙ Output Settings</div>
+
+        <div class="ctrl-row">
+            <span class="ctrl-lbl">Quality:</span>
+            <select id="quality">
+                <option value="144">144p  — fastest render</option>
+                <option value="240">240p</option>
+                <option value="360">360p</option>
+                <option value="480">480p</option>
+                <option value="720" selected>720p  — HD</option>
+                <option value="1080">1080p — Full HD</option>
+            </select>
+        </div>
+
+        <div class="ctrl-row">
+            <span class="ctrl-lbl">Aspect Ratio:</span>
+            <div class="seg-row" id="arGroup">
+                <button class="seg-btn active" data-ar="16:9">16:9</button>
+                <button class="seg-btn"        data-ar="9:16">9:16</button>
+                <button class="seg-btn"        data-ar="4:3" >4:3</button>
+                <button class="seg-btn"        data-ar="1:1" >1:1</button>
+            </div>
+        </div>
+
+        <div class="ctrl-row">
+            <span class="ctrl-lbl">Background:</span>
+            <div class="seg-row" id="bgGroup">
+                <button class="seg-btn active" data-bg="black">⬛ Black Bars</button>
+                <button class="seg-btn"        data-bg="blur" >🌫 Blurred</button>
+                <button class="seg-btn"        data-bg="stretch">⬌ Stretch</button>
+            </div>
+        </div>
+
+        <div class="ctrl-row">
+            <span class="ctrl-lbl">Frame Rate:</span>
+            <select id="fps">
+                <option value="1" selected>1 FPS</option>
+                <option value="5">5 FPS</option>
+                <option value="10">10 FPS</option>
+                <option value="24">24 FPS</option>
+                <option value="30">30 FPS</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- FADE EFFECTS -->
+    <div class="panel">
+        <div class="panel-label">🎞 Fade Effects</div>
+        <div class="fade-pair">
+            <label><input type="checkbox" id="fiCheck"> Fade In</label>
+            <span>Duration (s):</span>
+            <input type="number" id="fiDur" value="5" min="1" max="120">
+        </div>
+        <div class="fade-pair">
+            <label><input type="checkbox" id="foCheck"> Fade Out</label>
+            <span>Duration (s):</span>
+            <input type="number" id="foDur" value="5" min="1" max="120">
+        </div>
+        <div class="fade-pair">
+            <label>Fade Color:</label>
+            <input type="color" id="fadeCol" value="#000000">
+        </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-wrap">
+        <canvas id="cv" width="1280" height="720"></canvas>
+    </div>
+
+    <!-- PROGRESS + TIMER -->
+    <div class="prog-row" id="progRow">
+        <div class="prog-outer">
+            <div class="prog-fill" id="progFill"></div>
+            <div class="prog-pct"  id="progPct">0%</div>
+        </div>
+        <div class="timer" id="timer">0:00</div>
+    </div>
+    <div class="prog-status" id="progStatus"></div>
+    <div class="log-box" id="logBox"></div>
+
+    <!-- ACTION BUTTONS -->
+    <button class="abtn" id="renderBtn">▶ RENDER MP4</button>
+    <button class="abtn" id="dlBtn">⬇ DOWNLOAD OUTPUT.MP4</button>
+</div>
+
+<script>
+const { createFFmpeg, fetchFile } = FFmpeg;
+
+const ffmpeg = createFFmpeg({
+    log: true,
+    mainName: 'main',
+    corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
+    logger: ({ message }) => {
+        logBox.style.display = 'block';
+        logBox.innerHTML += message.replace(/</g,'&lt;') + '<br>';
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+});
+
+// DOM
+const imgIn     = document.getElementById('imgIn');
+const audIn     = document.getElementById('audIn');
+const audioBar  = document.getElementById('audioBar');
+const aName     = document.getElementById('aName');
+const aDur      = document.getElementById('aDur');
+const playBtn   = document.getElementById('playBtn');
+const quality   = document.getElementById('quality');
+const fpsEl     = document.getElementById('fps');
+const fiCheck   = document.getElementById('fiCheck');
+const fiDur     = document.getElementById('fiDur');
+const foCheck   = document.getElementById('foCheck');
+const foDur     = document.getElementById('foDur');
+const fadeCol   = document.getElementById('fadeCol');
+const cv        = document.getElementById('cv');
+const ctx2d     = cv.getContext('2d');
+const progRow   = document.getElementById('progRow');
+const progFill  = document.getElementById('progFill');
+const progPct   = document.getElementById('progPct');
+const progStatus= document.getElementById('progStatus');
+const timerEl   = document.getElementById('timer');
+const logBox    = document.getElementById('logBox');
+const renderBtn = document.getElementById('renderBtn');
+const dlBtn     = document.getElementById('dlBtn');
+
+// State
+let img        = null;
+let audioBlob  = null;
+let audioDur   = 0;
+let mp4Url     = null;
+let selAR      = '16:9';
+let selBG      = 'black';
+let timerSec   = 0;
+let timerIv    = null;
+const audioEl  = new Audio();
+
+// ── GEOMETRY HELPERS ──────────────────────────────────────────────────────────
+
+function arRatio() {
+    return { '16:9': 16/9, '9:16': 9/16, '4:3': 4/3, '1:1': 1 }[selAR];
+}
+
+function getOutputDims() {
+    const h = parseInt(quality.value);
+    let w = Math.round(h * arRatio());
+    return { w: w % 2 ? w-1 : w, h: h % 2 ? h-1 : h };
+}
+
+// Scale-to-contain rect (adds letterbox/pillarbox if needed)
+function containRect(iw, ih, cw, ch) {
+    const ir = iw/ih, cr = cw/ch;
+    return ir > cr
+        ? { x: 0,        y: (ch - cw/ir)/2, w: cw,    h: cw/ir   }
+        : { x: (cw - ch*ir)/2, y: 0,        w: ch*ir,  h: ch      };
+}
+
+// Scale-to-cover rect (crops to fill, no gaps)
+function coverRect(iw, ih, cw, ch) {
+    const ir = iw/ih, cr = cw/ch;
+    return ir > cr
+        ? { x: (cw - ch*ir)/2, y: 0,        w: ch*ir,  h: ch      }
+        : { x: 0,        y: (ch - cw/ir)/2, w: cw,    h: cw/ir   };
+}
+
+// ── DRAW ─────────────────────────────────────────────────────────────────────
+
+function drawFrame(fadeOpacity = 0) {
+    if (!img) return;
+    const W = cv.width, H = cv.height;
+    ctx2d.clearRect(0, 0, W, H);
+
+    if (selBG === 'stretch') {
+        // Fill entire frame — stretches image to fit exactly
+        ctx2d.drawImage(img, 0, 0, W, H);
+
+    } else if (selBG === 'black') {
+        // Black bars — image is contained, original proportions kept
+        ctx2d.fillStyle = '#000';
+        ctx2d.fillRect(0, 0, W, H);
+        const r = containRect(img.width, img.height, W, H);
+        ctx2d.drawImage(img, r.x, r.y, r.w, r.h);
+
+    } else if (selBG === 'blur') {
+        // Blurred cover behind + sharp contain on top
+        const br = coverRect(img.width, img.height, W, H);
+        // Draw bg slightly oversized (110%) to hide blur edge darkening
+        const pad = 0.12;
+        ctx2d.save();
+        ctx2d.filter = 'blur(22px)';
+        ctx2d.drawImage(img,
+            br.x - br.w * pad,
+            br.y - br.h * pad,
+            br.w * (1 + pad*2),
+            br.h * (1 + pad*2)
+        );
+        ctx2d.restore();
+        // Slight darkening overlay for contrast
+        ctx2d.fillStyle = 'rgba(0,0,0,0.28)';
+        ctx2d.fillRect(0, 0, W, H);
+        // Sharp image on top, contained
+        const r = containRect(img.width, img.height, W, H);
+        ctx2d.drawImage(img, r.x, r.y, r.w, r.h);
+    }
+
+    // Fade colour overlay
+    if (fadeOpacity > 0) {
+        ctx2d.save();
+        ctx2d.globalAlpha = Math.min(1, Math.max(0, fadeOpacity));
+        ctx2d.fillStyle   = fadeCol.value;
+        ctx2d.fillRect(0, 0, W, H);
+        ctx2d.restore();
+    }
+}
+
+function drawPlaceholder() {
+    const W = cv.width, H = cv.height;
+    ctx2d.fillStyle = '#111';
+    ctx2d.fillRect(0, 0, W, H);
+    ctx2d.fillStyle = '#00ff00';
+    ctx2d.font = `bold ${Math.max(10, H * 0.04)}px Courier New`;
+    ctx2d.textAlign = 'center';
+    ctx2d.fillText('[ MP4 ENGINE v4.0 READY ]', W/2, H/2 - 14);
+    ctx2d.fillStyle = '#555';
+    ctx2d.font = `${Math.max(9, H * 0.03)}px Courier New`;
+    ctx2d.fillText('Load image + audio to begin', W/2, H/2 + 14);
+}
+
+function refreshCanvas() {
+    const d = getOutputDims();
+    cv.width  = d.w;
+    cv.height = d.h;
+    img ? drawFrame() : drawPlaceholder();
+}
+
+// ── IMAGE UPLOAD ──────────────────────────────────────────────────────────────
+
+imgIn.addEventListener('change', e => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+        img = new Image();
+        img.onload = () => refreshCanvas();
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(e.target.files[0]);
+});
+
+// ── AUDIO UPLOAD ──────────────────────────────────────────────────────────────
+
+audIn.addEventListener('change', e => {
+    audioBlob = e.target.files[0];
+    audioEl.src = URL.createObjectURL(audioBlob);
+    audioEl.onloadedmetadata = () => {
+        audioDur = audioEl.duration;
+        const m = Math.floor(audioDur/60);
+        const s = Math.floor(audioDur%60);
+        aName.textContent = audioBlob.name;
+        aDur.textContent  = `${m}:${String(s).padStart(2,'0')}`;
+        audioBar.style.display = 'flex';
+        playBtn.textContent = '▶ PLAY';
+    };
+});
+
+playBtn.addEventListener('click', () => {
+    if (audioEl.paused) { audioEl.play();  playBtn.textContent = '⏸ PAUSE'; }
+    else                { audioEl.pause(); playBtn.textContent = '▶ PLAY';  }
+});
+audioEl.addEventListener('ended', () => { playBtn.textContent = '▶ PLAY'; });
+
+// ── SEGMENT BUTTONS ───────────────────────────────────────────────────────────
+
+document.getElementById('arGroup').addEventListener('click', e => {
+    const b = e.target.closest('.seg-btn'); if (!b) return;
+    document.querySelectorAll('#arGroup .seg-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    selAR = b.dataset.ar;
+    refreshCanvas();
+});
+
+document.getElementById('bgGroup').addEventListener('click', e => {
+    const b = e.target.closest('.seg-btn'); if (!b) return;
+    document.querySelectorAll('#bgGroup .seg-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    selBG = b.dataset.bg;
+    drawFrame();
+});
+
+quality.addEventListener('change', refreshCanvas);
+fadeCol.addEventListener('input', () => { if (img) drawFrame(); });
+
+// ── TIMER ─────────────────────────────────────────────────────────────────────
+
+function startTimer() {
+    timerSec = 0; tickTimer();
+    timerIv = setInterval(tickTimer, 1000);
+}
+function stopTimer() { clearInterval(timerIv); timerIv = null; }
+function tickTimer() {
+    timerSec++;
+    const m = Math.floor(timerSec/60), s = timerSec % 60;
+    timerEl.textContent = `${m}:${String(s).padStart(2,'0')}`;
+}
+
+// ── PROGRESS HELPERS ──────────────────────────────────────────────────────────
+
+function setProg(pct, msg) {
+    progFill.style.width = pct + '%';
+    progPct.textContent  = Math.round(pct) + '%';
+    if (msg !== undefined) {
+        progStatus.style.display = 'block';
+        progStatus.textContent   = '▸ ' + msg;
+    }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+
+renderBtn.addEventListener('click', async () => {
+    if (!img)       { alert('Please load an image first!');  return; }
+    if (!audioBlob) { alert('Please load an audio file first!'); return; }
+    if (!audioDur)  { alert('Audio not ready yet — wait a moment.'); return; }
+
+    renderBtn.disabled = true;
+    dlBtn.style.display = 'none';
+    progRow.style.display = 'flex';
+    progStatus.style.display = 'block';
+    logBox.innerHTML = '';
+    logBox.style.display = 'none';
+
+    audioEl.pause();
+    playBtn.textContent = '▶ PLAY';
+    startTimer();
+    setProg(3, 'Loading FFmpeg compiler engine...');
+
+    if (!ffmpeg.isLoaded()) await ffmpeg.load();
+
+    const fps    = parseInt(fpsEl.value);
+    const dims   = getOutputDims();
+    cv.width     = dims.w;
+    cv.height    = dims.h;
+    const frames = Math.ceil(audioDur * fps);
+
+    setProg(10, `Output: ${dims.w}×${dims.h} @ ${fps}fps — ${frames} frames to bake`);
+    await tick();
+
+    // ── BAKE FRAMES ──
+    for (let i = 0; i < frames; i++) {
+        const t = i / fps;
+        let opacity = 0;
+
+        if (fiCheck.checked) {
+            const d = parseFloat(fiDur.value);
+            if (t < d) opacity = 1 - (t / d);
+        }
+        if (foCheck.checked) {
+            const d = parseFloat(foDur.value);
+            if (t > audioDur - d) opacity = Math.max(opacity, (t - (audioDur - d)) / d);
+        }
+
+        drawFrame(opacity);
+
+        // Capture JPEG from canvas
+        const url  = cv.toDataURL('image/jpeg', 0.92);
+        const b64  = url.split(',')[1];
+        const bin  = atob(b64);
+        const arr  = new Uint8Array(bin.length);
+        for (let j = 0; j < bin.length; j++) arr[j] = bin.charCodeAt(j);
+        ffmpeg.FS('writeFile', `f_${pad(i)}.jpg`, arr);
+
+        if (i % Math.max(1, Math.floor(frames / 30)) === 0) {
+            setProg(10 + (i / frames) * 52, `Baking frame ${i+1} / ${frames}...`);
+            await tick();
+        }
+    }
+
+    setProg(64, 'Writing audio file...');
+    ffmpeg.FS('writeFile', 'aud', await fetchFile(audioBlob));
+
+    setProg(70, 'Encoding H.264 Baseline + AAC — Windows Media Player compatible...');
+
+    try {
+        await ffmpeg.run(
+            // Image sequence input
+            '-framerate', `${fps}`,
+            '-i', 'f_%05d.jpg',
+            // Audio input
+            '-i', 'aud',
+            // Video: H.264 Baseline — maximum player compatibility
+            '-c:v',       'libx264',
+            '-profile:v', 'baseline',
+            '-level',     '3.1',
+            '-pix_fmt',   'yuv420p',
+            '-preset',    'medium',
+            // Audio: AAC with explicit settings Windows Media Player expects
+            '-c:a',  'aac',
+            '-b:a',  '192k',
+            '-ar',   '44100',
+            '-ac',   '2',
+            // MP4 container: moves metadata to file start — critical for WMP recognition
+            '-movflags', '+faststart',
+            '-shortest',
+            'out.mp4'
+        );
+    } catch (err) {
+        stopTimer();
+        setProg(0, '❌ Encoding error: ' + err.message);
+        logBox.style.display = 'block';
+        renderBtn.disabled = false;
+        return;
+    }
+
+    setProg(94, 'Reading output...');
+
+    const raw    = ffmpeg.FS('readFile', 'out.mp4');
+    const blob   = new Blob([raw.buffer], { type: 'video/mp4' });
+    mp4Url       = URL.createObjectURL(blob);
+    const sizeMB = (blob.size / 1048576).toFixed(2);
+
+    // Cleanup virtual FS
+    for (let i = 0; i < frames; i++) { try { ffmpeg.FS('unlink', `f_${pad(i)}.jpg`); } catch(e){} }
+    try { ffmpeg.FS('unlink', 'aud');     } catch(e){}
+    try { ffmpeg.FS('unlink', 'out.mp4'); } catch(e){}
+
+    stopTimer();
+    const elapsed = timerEl.textContent;
+    setProg(100, `✓ Done! ${sizeMB} MB — rendered in ${elapsed} — ready to download`);
+
+    // Redraw clean preview
+    drawFrame(0);
+
+    renderBtn.disabled = false;
+    dlBtn.style.display = 'block';
+});
+
+dlBtn.addEventListener('click', () => {
+    if (!mp4Url) return;
+    const a = document.createElement('a');
+    a.download = 'output.mp4';
+    a.href = mp4Url;
+    a.click();
+});
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+
+function pad(n) { return String(n).padStart(5, '0'); }
+function tick()  { return new Promise(r => setTimeout(r, 1)); }
+
+// Init
+refreshCanvas();
+</script>
+</body>
+</html>
