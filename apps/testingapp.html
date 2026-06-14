@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Mixtape Generator Studio</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --accent: #06b6d4;
+      --accent-hover: #0891b2;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --input-bg: #1f2937;
+      --border: #374151;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 35px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 580px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 2rem;
+      text-align: center;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    .file-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 35px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(255,255,255,0.01);
+      transition: all 0.2s;
+      margin-bottom: 25px;
+    }
+
+    .file-zone:hover {
+      border-color: var(--accent);
+      background: rgba(6, 182, 212, 0.03);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn:active {
+      transform: scale(0.99);
+    }
+
+    .btn:disabled {
+      background: #374151;
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-download {
+      background: #10b981;
+      color: #000;
+      margin-top: 15px;
+    }
+    .btn-download:hover {
+      background: #059669;
+    }
+
+    .status {
+      margin-top: 20px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--accent);
+    }
+
+    .output-section {
+      margin-top: 30px;
+      display: none;
+      border-top: 1px solid var(--border);
+      padding-top: 25px;
+    }
+
+    h3 {
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      background: #090d16;
+      border: 1px solid var(--border);
+      color: #34d399;
+      padding: 12px;
+      border-radius: 8px;
+      resize: vertical;
+      font-family: monospace;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Mixtape Builder Studio</h1>
+    <p>Randomly shuffles and blends audio tracks with pristine DAW-style stacking math.</p>
+
+    <div class="form-group">
+      <label for="project-name">Project / Mix Name</label>
+      <input type="text" id="project-name" value="My Epic Continuous Mix" placeholder="Enter output file name...">
+    </div>
+
+    <div class="form-group">
+      <label for="bitrate-select">Target MP3 Quality (Bitrate)</label>
+      <select id="bitrate-select">
+        <option value="320" selected>320 kbps (Pristine - Archive Quality)</option>
+        <option value="256">256 kbps (High Quality - Standard)</option>
+        <option value="192">192 kbps (Medium Quality - Balanced)</option>
+        <option value="128">128 kbps (Low Quality - Small File Size)</option>
+      </select>
+    </div>
+
+    <div class="file-zone" onclick="document.getElementById('audio-files').click()">
+      <span id="file-prompt">Click to upload your MP3 or WAV audio tracks</span>
+      <input type="file" id="audio-files" multiple accept="audio/*">
+    </div>
+
+    <button class="btn" id="process-btn" disabled>Render & Export Mix</button>
+
+    <div class="status" id="status-msg"></div>
+
+    <div class="output-section" id="output-section">
+      <h3>Tracklist Timestamps (Cleaned & Randomized)</h3>
+      <textarea id="timestamp-box" readonly></textarea>
+      
+      <h3>Listen to Mix Preview</h3>
+      <audio id="audio-preview" controls></audio>
+
+      <button class="btn btn-download" id="download-btn">Download Final MP3</button>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('audio-files');
+    const filePrompt = document.getElementById('file-prompt');
+    const processBtn = document.getElementById('process-btn');
+    const statusMsg = document.getElementById('status-msg');
+    const outputSection = document.getElementById('output-section');
+    const timestampBox = document.getElementById('timestamp-box');
+    const audioPreview = document.getElementById('audio-preview');
+    const downloadBtn = document.getElementById('download-btn');
+    const projectNameInput = document.getElementById('project-name');
+    const bitrateSelect = document.getElementById('bitrate-select');
+
+    let selectedFiles = [];
+    let currentDownloadUrl = null;
+
+    // Fisher-Yates Complete Randomizer Shuffler
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Cleaning Function to strip away extensions, parenthetical content, and annoying prefixes
+    function cleanTrackName(name) {
+      // Remove file format suffix
+      let clean = name.replace(/\.[^/.]+$/, "");
+      
+      // Remove text inside parentheses along with the parentheses and preceding whitespace
+      clean = clean.replace(/\s*\([^)]*\)/g, "");
+      
+      // regex breakdown: ^[\s,,-]* matches any leading spaces, commas, or dashes at the absolute start of string
+      clean = clean.replace(/^[\s,,-]+/, "");
+      
+      return clean.trim();
+    }
+
+    fileInput.addEventListener('change', (e) => {
+      selectedFiles = shuffleArray(Array.from(e.target.files));
+      if (selectedFiles.length > 0) {
+        filePrompt.textContent = `${selectedFiles.length} tracks loaded and randomized successfully!`;
+        processBtn.disabled = false;
+      }
+    });
+
+    processBtn.addEventListener('click', async () => {
+      processBtn.disabled = true;
+      statusMsg.textContent = "Parsing and decoding multi-track files... please hold.";
+      outputSection.style.display = "none";
+      
+      if (currentDownloadUrl) {
+        URL.revokeObjectURL(currentDownloadUrl);
+      }
+
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const decodedBuffers = [];
+      const trackNames = [];
+
+      for (let file of selectedFiles) {
+        try {
+          statusMsg.textContent = `Processing track: ${file.name}...`;
+          const arrayBuffer = await file.arrayBuffer();
+          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+          decodedBuffers.push(audioBuffer);
+          trackNames.push(cleanTrackName(file.name));
+        } catch (err) {
+          console.error("Audio decode failure: ", file.name, err);
+          statusMsg.textContent = `Failed to process ${file.name}. Ensure format is correct.`;
+          processBtn.disabled = false;
+          return;
+        }
+      }
+
+      statusMsg.textContent = "Calculating timeline brick-stack parameters...";
+
+      let timeline = [];
+      let currentTime = 0;
+      let timestamps = [];
+
+      for (let i = 0; i < decodedBuffers.length; i++) {
+        const buffer = decodedBuffers[i];
+        
+        timestamps.push(`${formatTime(currentTime)} - ${trackNames[i]}`);
+        
+        timeline.push({
+          buffer: buffer,
+          startTime: currentTime,
+          duration: buffer.duration
+        });
+
+        if (i < decodedBuffers.length - 1) {
+          currentTime += (buffer.duration - 3);
+        } else {
+          currentTime += buffer.duration;
+        }
+      }
+
+      timestampBox.value = timestamps.join('\n');
+
+      statusMsg.textContent = "Mixing and executing 6s relative volume transitions...";
+      const totalDuration = currentTime;
+      const sampleRate = 44100;
+      
+      const offlineCtx = new OfflineAudioContext(2, sampleRate * totalDuration, sampleRate);
+
+      timeline.forEach((item) => {
+        const source = offlineCtx.createBufferSource();
+        const gainNode = offlineCtx.createGain();
+        source.buffer = item.buffer;
+
+        gainNode.gain.setValueAtTime(0, item.startTime);
+        gainNode.gain.linearRampToValueAtTime(1, item.startTime + 6);
+
+        const fadeOutStart = item.startTime + item.duration - 6;
+        gainNode.gain.setValueAtTime(1, fadeOutStart);
+        gainNode.gain.linearRampToValueAtTime(0, item.startTime + item.duration);
+
+        source.connect(gainNode);
+        gainNode.connect(offlineCtx.destination);
+        
+        source.start(item.startTime);
+      });
+
+      const renderedBuffer = await offlineCtx.startRendering();
+
+      const chosenBitrate = parseInt(bitrateSelect.value);
+      statusMsg.textContent = `Encoding master output to ${chosenBitrate}kbps MP3 format...`;
+      
+      const mp3Blob = encodeMp3(renderedBuffer, chosenBitrate);
+      
+      currentDownloadUrl = URL.createObjectURL(mp3Blob);
+      audioPreview.src = currentDownloadUrl;
+      
+      const sanitizedProjectName = projectNameInput.value.trim().replace(/[^a-zA-Z0-9-_ ]/g, '') || 'Mixtape';
+      downloadBtn.onclick = () => {
+        const a = document.createElement('a');
+        a.href = currentDownloadUrl;
+        a.download = `${sanitizedProjectName}_${chosenBitrate}kbps.mp3`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      };
+
+      statusMsg.textContent = "Mix completed! Review your tracklist and download below.";
+      outputSection.style.display = "block";
+      processBtn.disabled = false;
+    });
+
+    function formatTime(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      
+      if (h > 0) {
+        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      }
+      return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function encodeMp3(audioBuffer, bitrate) {
+      const left = audioBuffer.getChannelData(0);
+      const right = audioBuffer.numberOfChannels > 1 ? audioBuffer.getChannelData(1) : left;
+      
+      const mp3encoder = new lamejs.Mp3Encoder(2, audioBuffer.sampleRate, bitrate);
+      const mp3Data = [];
+
+      const sampleBlockSize = 1152;
+      const leftInt16 = new Int16Array(left.length);
+      const rightInt16 = new Int16Array(right.length);
+
+      for (let i = 0; i < left.length; i++) {
+        leftInt16[i] = left[i] < 0 ? left[i] * 0x8000 : left[i] * 0x7FFF;
+        rightInt16[i] = right[i] < 0 ? right[i] * 0x8000 : right[i] * 0x7FFF;
+      }
+
+      for (let i = 0; i < leftInt16.length; i += sampleBlockSize) {
+        const leftChunk = leftInt16.subarray(i, i + sampleBlockSize);
+        const rightChunk = rightInt16.subarray(i, i + sampleBlockSize);
+        const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+        if (mp3buf.length > 0) {
+          mp3Data.push(new Uint8Array(mp3buf));
+        }
+      }
+
+      const mp3buf = mp3encoder.flush();
+      if (mp3buf.length > 0) {
+        mp3Data.push(new Uint8Array(mp3buf));
+      }
+
+      return new Blob(mp3Data, { type: 'audio/mp3' });
+    }
+  </script>
+</body>
+</html>
