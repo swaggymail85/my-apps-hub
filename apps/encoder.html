@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRUE MP4 VIDEO COMPILER v2.0</title>
+    <title>TRUE MP4 COMPILER v3.0 (CODEPEN COMPATIBLE)</title>
     <style>
         /* 90s/2000s Win98 & Multimedia Application Theme */
         body {
@@ -196,7 +196,7 @@
 <body>
 
     <div class="app-window">
-        <div class="title-bar">TRUE MP4 ENGINE v2.0 (FFMPEG CODENAME)</div>
+        <div class="title-bar">TRUE MP4 ENGINE v3.0 (SECURE IFRAME COMPATIBLE)</div>
 
         <div class="file-upload-box">
             <div class="file-input-container">
@@ -237,7 +237,7 @@
                 <label for="frameRate">Export Frame Rate:</label>
                 <div class="input-wrapper">
                     <select id="frameRate">
-                        <option value="1">1 FPS</option>
+                        <option value="1" selected>1 FPS</option>
                         <option value="5">5 FPS</option>
                         <option value="10">10 FPS</option>
                         <option value="24">24 FPS</option>
@@ -262,10 +262,14 @@
 
     <script>
         const { createFFmpeg, fetchFile } = FFmpeg;
+        
+        // CRITICAL FIX: Explicitly forcing the Single-Thread version of the core compilation files
+        // This stops CodePen iframe containers from rejecting/freezing the process
         const ffmpeg = createFFmpeg({
-    log: true,
-    corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
-});
+            log: true,
+            mainName: 'main',
+            corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js'
+        });
 
         const imageLoader = document.getElementById('imageLoader');
         const audioLoader = document.getElementById('audioLoader');
@@ -290,7 +294,6 @@
         let audioDuration = 0;
         let mp4FileBlobUrl = null;
 
-        // Draw boilerplate status
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#ffffff";
@@ -357,8 +360,9 @@
             progressContainer.style.display = "block";
             
             progressBar.style.width = '10%';
-            progressText.innerText = "Warming up virtual compiler...";
+            progressText.innerText = "Loading local sandbox compiler engine...";
 
+            // Bypasses sandbox error flags smoothly now
             if (!ffmpeg.isLoaded()) {
                 await ffmpeg.load();
             }
@@ -367,13 +371,12 @@
             const totalFrames = Math.ceil(audioDuration * fps);
 
             progressBar.style.width = '20%';
-            progressText.innerText = "Extracting raw image sequence frames...";
+            progressText.innerText = "Processing source images...";
 
-            // 1. Process frames instantly in CPU memory loop and pass to FFmpeg virtual storage
+            // 1. Process frames instantly in a fast memory loop
             for (let i = 0; i < totalFrames; i++) {
                 applyFades(i, fps);
                 
-                // Extract canvas to raw binary string representation
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
                 const base64Data = dataUrl.split(',')[1];
                 const binaryData = atob(base64Data);
@@ -382,29 +385,27 @@
                     array[j] = binaryData.charCodeAt(j);
                 }
 
-                // Write indexed frames directly into the virtual sandbox filesystem
                 const paddedIndex = String(i).padStart(5, '0');
                 ffmpeg.FS('writeFile', `frame_${paddedIndex}.jpg`, array);
 
-                if (i % Math.max(1, Math.floor(totalFrames / 5)) === 0) {
+                if (i % Math.max(1, Math.floor(totalFrames / 10)) === 0) {
                     const progressVal = 20 + Math.floor((i / totalFrames) * 40);
                     progressBar.style.width = `${progressVal}%`;
-                    progressText.innerText = `Caching frame data (${i}/${totalFrames})...`;
+                    progressText.innerText = `Baking frame data (${i}/${totalFrames})...`;
                 }
-                await new Promise(r => setTimeout(r, 5));
+                // Yield thread briefly to avoid freezing browser window entirely
+                await new Promise(r => setTimeout(r, 1));
             }
 
             progressBar.style.width = '65%';
-            progressText.innerText = "Mapping audio channels...";
+            progressText.innerText = "Muxing audio channels...";
             
-            // 2. Load audio payload file inside virtual memory directory
             ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(audioBlob));
 
             progressBar.style.width = '80%';
-            progressText.innerText = "Executing true hardware h264/AAC MP4 multiplex compile...";
+            progressText.innerText = "Encoding genuine H.264 MP4 container file...";
 
-            // 3. Trigger true hardware multiplex terminal commands across CPU
-            // Synthesizes sequence layout into valid streaming dynamic h264 container packages
+            // 2. Transcode natively to H.264 and AAC audio for an industry standard playable file
             await ffmpeg.run(
                 '-r', `${fps}`,
                 '-i', 'frame_%05d.jpg',
@@ -417,14 +418,13 @@
             );
 
             progressBar.style.width = '95%';
-            progressText.innerText = "Cleaning up staging buffers...";
+            progressText.innerText = "Finalizing streaming layouts...";
 
-            // Read absolute finalized format array outputs out of memory space
             const finalData = ffmpeg.FS('readFile', 'output.mp4');
             const nativeMp4Blob = new Blob([finalData.buffer], { type: 'video/mp4' });
             mp4FileBlobUrl = URL.createObjectURL(nativeMp4Blob);
 
-            // Wipe file history caches to keep page light
+            // 3. Clear file buffers to preserve page resources
             for (let i = 0; i < totalFrames; i++) {
                 ffmpeg.FS('unlink', `frame_${String(i).padStart(5, '0')}.jpg`);
             }
@@ -432,7 +432,7 @@
             ffmpeg.FS('unlink', 'output.mp4');
 
             progressBar.style.width = '100%';
-            progressText.innerText = "Export Complete! True MP4 generated.";
+            progressText.innerText = "Done! Genuine MP4 created successfully.";
             exportBtn.disabled = false;
             downloadBtn.style.display = "block";
         });
