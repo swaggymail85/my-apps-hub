@@ -298,7 +298,7 @@
 
                         const card = document.createElement('div');
                         card.className = 'app-card';
-                        card.onclick = () => launchApp(`https://cdn.jsdelivr.net/gh/${username}/${repo}@main/apps/${file.name}`, displayTitle);
+                        card.onclick = () => launchApp(`https://raw.githack.com/${username}/${repo}/main/apps/${file.name}`, displayTitle);
                         card.innerHTML = `
                             <div class="app-icon">${selectedIcon}</div>
                             <div class="app-title">${displayTitle}</div>
