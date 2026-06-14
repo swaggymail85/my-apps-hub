@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Audio Stutter, Jump & Waveform Player</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #121214;
+      color: #e0e0e6;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 700px;
+      background: #1a1a24;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.6rem;
+      color: #00e676;
+      text-align: center;
+    }
+    
+    /* Stats Dashboard Styling */
+    .stats-dashboard {
+      background: #20202d;
+      border: 1px dashed #4fc3f7;
+      border-radius: 8px;
+      padding: 12px 15px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+    }
+    .stat-box span {
+      display: block;
+      color: #aaa;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .stat-box strong {
+      font-size: 1.1rem;
+      color: #fff;
+    }
+    #estListenTime {
+      color: #00e676;
+    }
+
+    .control-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    input[type="number"], input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      background: #252538;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #fff;
+      box-sizing: border-box;
+    }
+    .slider-group {
+      background: #252538;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      border: 1px solid #444;
+    }
+    .slider-group div {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 0.85rem;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #00e676;
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    .checkbox-group input {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    .global-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      background: #00e676;
+      border: none;
+      border-radius: 6px;
+      color: #000;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    button.pause-btn {
+      background: #ffb300;
+      color: #000;
+    }
+    button.stop-btn {
+      background: #ff1744;
+      color: #fff;
+    }
+    #statusMessage {
+      font-size: 0.85rem;
+      color: #00e676;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+    .track-list {
+      margin-top: 25px;
+      max-height: 450px;
+      overflow-y: auto;
+      border-top: 1px solid #333;
+      padding-top: 15px;
+      scroll-behavior: smooth;
+    }
+    .track-item {
+      background: #222230;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid #333;
+      transition: border-color 0.2s;
+    }
+    .track-item.active {
+      border-color: #00e676;
+      background: #272738;
+    }
+    .track-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .track-name {
+      font-size: 0.9rem;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 75%;
+    }
+    .track-meta button {
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      width: auto;
+      flex: none;
+    }
+    .waveform-container {
+      position: relative;
+      background: #15151f;
+      height: 50px;
+      border-radius: 4px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .waveform-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .playhead {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 2px;
+      height: 100%;
+      background: #ff1744;
+      pointer-events: none;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Audio Jump Chopper & Wave Player</h1>
+
+  <div class="control-group">
+    <label for="fileInput">Upload Tracks (Handles 200+ efficiently)</label>
+    <input type="file" id="fileInput" multiple accept="audio/*">
+  </div>
+
+  <div id="statusMessage"></div>
+
+  <div class="stats-dashboard">
+    <div class="stat-box">
+      <span>Total Upload Time</span>
+      <strong id="totalUploadTime">0m 0s</strong>
+    </div>
+    <div class="stat-box">
+      <span>Jump Mode Session Time</span>
+      <strong id="estListenTime">0m 0s</strong>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label for="playDuration">Play Duration (seconds)</label>
+    <input type="number" id="playDuration" value="0.5" step="0.1" min="0.1">
+  </div>
+
+  <div class="control-group">
+    <label for="jumpInterval">Time Between Jumps (seconds)</label>
+    <input type="number" id="jumpInterval" value="10" step="1" min="1">
+  </div>
+
+  <div class="slider-group">
+    <div>
+      <label for="volumeSlider">Master Volume</label>
+      <span id="volumeVal">80%</span>
+    </div>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8">
+  </div>
+
+  <div class="slider-group">
+    <div>
+      <label for="speedSlider">Playback Speed</label>
+      <span id="speedVal">1.0x</span>
+    </div>
+    <input type="range" id="speedSlider" min="0.5" max="20.0" step="0.05" value="1.0">
+  </div>
+
+  <div class="checkbox-group">
+    <input type="checkbox" id="autoPlay" checked>
+    <label for="autoPlay">Auto-play next track when finished</label>
+  </div>
+
+  <div class="global-controls">
+    <button id="pauseBtn" class="pause-btn">Pause</button>
+    <button id="stopBtn" class="stop-btn">Global Stop</button>
+  </div>
+
+  <div class="track-list" id="trackList"></div>
+</div>
+
+<script>
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = null;
+  let gainNode = null;
+
+  // App State
+  let playlist = []; 
+  let currentTrackIndex = -1;
+  let currentSource = null; 
+  let playTimeout = null; 
+  let currentTrackTimeOffset = 0; 
+  let totalPlaylistSeconds = 0; 
+  
+  let playbackMode = 'jump'; 
+  let updatePlayheadInterval = null;
+  let isPaused = false;
+  let normalModeAudioCtxStart = 0;
+
+  // DOM Elements
+  const fileInput = document.getElementById('fileInput');
+  const playDurationInput = document.getElementById('playDuration');
+  const jumpIntervalInput = document.getElementById('jumpInterval');
+  const autoPlayCheck = document.getElementById('autoPlay');
+  const trackListDiv = document.getElementById('trackList');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const volumeSlider = document.getElementById('volumeSlider');
+  const volumeVal = document.getElementById('volumeVal');
+  const speedSlider = document.getElementById('speedSlider');
+  const speedVal = document.getElementById('speedVal');
+  const statusMessage = document.getElementById('statusMessage');
+  
+  const totalUploadTimeEl = document.getElementById('totalUploadTime');
+  const estListenTimeEl = document.getElementById('estListenTime');
+
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new AudioContext();
+      gainNode = audioCtx.createGain();
+      gainNode.gain.setValueAtTime(volumeSlider.value, audioCtx.currentTime);
+      gainNode.connect(audioCtx.destination);
+    }
+  }
+
+  playDurationInput.addEventListener('input', calculateTimeStats);
+  jumpIntervalInput.addEventListener('input', calculateTimeStats);
+
+  volumeSlider.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    volumeVal.textContent = Math.round(val * 100) + "%";
+    if (gainNode) {
+      gainNode.gain.setValueAtTime(val, audioCtx.currentTime);
+    }
+  });
+
+speedSlider.addEventListener('input', (e) => {
+  const val = parseFloat(e.target.value);
+  speedVal.textContent = val.toFixed(1) + "x"; // Made it 1 decimal place for cleaner reading
+  if (currentSource && !isPaused) {
+    try {
+      currentSource.playbackRate.setValueAtTime(val, audioCtx.currentTime);
+    } catch(err) {}
+  }
+});
+
+  fileInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    initAudio();
+    stopEverything();
+    playlist = [];
+    totalPlaylistSeconds = 0;
+    trackListDiv.innerHTML = "";
+    
+    statusMessage.textContent = `Found ${files.length} files. Beginning background compilation...`;
+
+    let batchBuffer = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      statusMessage.textContent = `Processing file ${i + 1} of ${files.length}...`;
+      
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        
+        const trackData = {
+          name: file.name,
+          buffer: audioBuffer,
+          index: playlist.length
+        };
+        
+        playlist.push(trackData);
+        batchBuffer.push(trackData);
+        
+        totalPlaylistSeconds += audioBuffer.duration;
+
+        if (batchBuffer.length === 10 || i === files.length - 1) {
+          appendTracksToUI(batchBuffer);
+          batchBuffer = [];
+          calculateTimeStats();
+        }
+      } catch (err) {
+        console.error("Error decoding: " + file.name, err);
+      }
+    }
+    statusMessage.textContent = `All ${playlist.length} files successfully decoded and ready!`;
+    calculateTimeStats();
+  });
+
+  function formatSeconds(totalSeconds) {
+    if (isNaN(totalSeconds) || totalSeconds <= 0) return "0m 0s";
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = Math.floor(totalSeconds % 60);
+
+    let res = "";
+    if (hrs > 0) res += `${hrs}h `;
+    if (mins > 0 || hrs > 0) res += `${mins}m `;
+    res += `${secs}s`;
+    return res;
+  }
+
+  function calculateTimeStats() {
+    if (playlist.length === 0) {
+      totalUploadTimeEl.textContent = "0m 0s";
+      estListenTimeEl.textContent = "0m 0s";
+      return;
+    }
+
+    const duration = parseFloat(playDurationInput.value) || 0.5;
+    const jump = parseFloat(jumpIntervalInput.value) || 10;
+    const chunkTotal = duration + jump;
+
+    let estimatedTotalListeningTime = 0;
+
+    playlist.forEach(track => {
+      const trackLen = track.buffer.duration;
+      const numberOfJumps = Math.floor(trackLen / chunkTotal);
+      let listeningTimeForThisTrack = numberOfJumps * duration;
+      
+      const remainder = trackLen % chunkTotal;
+      if (remainder > 0) {
+        listeningTimeForThisTrack += Math.min(remainder, duration);
+      }
+      
+      estimatedTotalListeningTime += listeningTimeForThisTrack;
+    });
+
+    totalUploadTimeEl.textContent = formatSeconds(totalPlaylistSeconds);
+    estListenTimeEl.textContent = formatSeconds(estimatedTotalListeningTime);
+  }
+
+  function appendTracksToUI(tracksChunk) {
+    tracksChunk.forEach((track) => {
+      const item = document.createElement('div');
+      item.className = 'track-item';
+      item.id = `track-${track.index}`;
+
+      const meta = document.createElement('div');
+      meta.className = 'track-meta';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'track-name';
+      nameSpan.textContent = `${track.index + 1}. ${track.name}`;
+
+      const playBtn = document.createElement('button');
+      playBtn.textContent = 'Jump Mode';
+      playBtn.onclick = () => playTrackInJumpMode(track.index);
+
+      meta.appendChild(nameSpan);
+      meta.appendChild(playBtn);
+      item.appendChild(meta);
+
+      const waveContainer = document.createElement('div');
+      waveContainer.className = 'waveform-container';
+      
+      const canvas = document.createElement('canvas');
+      canvas.className = 'waveform-canvas';
+      
+      const playhead = document.createElement('div');
+      playhead.className = 'playhead';
+      playhead.id = `playhead-${track.index}`;
+
+      waveContainer.appendChild(canvas);
+      waveContainer.appendChild(playhead);
+      item.appendChild(waveContainer);
+      trackListDiv.appendChild(item);
+
+      drawWaveform(track.buffer, canvas);
+
+      waveContainer.addEventListener('click', (e) => {
+        const rect = waveContainer.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const percentage = clickX / rect.width;
+        const clickTime = percentage * track.buffer.duration;
+        
+        playTrackNormalMode(track.index, clickTime);
+      });
+    });
+  }
+
+  function drawWaveform(audioBuffer, canvas) {
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = canvas.offsetWidth || 300;
+    const height = canvas.height = canvas.offsetHeight || 50;
+    
+    const leftChannel = audioBuffer.getChannelData(0); 
+    const step = Math.ceil(leftChannel.length / width);
+    const amp = height / 2;
+
+    ctx.fillStyle = '#252538';
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#4fc3f7';
+
+    for (let i = 0; i < width; i++) {
+      let min = 1.0;
+      let max = -1.0;
+      for (let j = 0; j < step; j++) {
+        const dat = leftChannel[(i * step) + j];
+        if (dat < min) min = dat;
+        if (dat > max) max = dat;
+      }
+      ctx.fillRect(i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
+    }
+  }
+
+  function playTrackInJumpMode(index) {
+    playbackMode = 'jump';
+    currentTrackTimeOffset = 0;
+    isPaused = false;
+    pauseBtn.textContent = "Pause";
+    setActiveUIItem(index);
+    playSegment();
+  }
+
+  function playTrackNormalMode(index, startTime) {
+    playbackMode = 'normal';
+    currentTrackTimeOffset = startTime;
+    isPaused = false;
+    pauseBtn.textContent = "Pause";
+    setActiveUIItem(index);
+    playNormalStream();
+  }
+
+  function setActiveUIItem(index) {
+    stopEverything();
+    currentTrackIndex = index;
+
+    const elements = document.getElementsByClassName('track-item');
+    Array.from(elements).forEach(el => el.classList.remove('active'));
+    
+    const activeEl = document.getElementById(`track-${index}`);
+    if (activeEl) {
+      activeEl.classList.add('active');
+      // Auto scroll container seamlessly to show playing track in view
+      trackListDiv.scrollTo({
+        top: activeEl.offsetTop - trackListDiv.offsetTop - 20,
+        behavior: 'smooth'
+      });
+    }
+
+    const playheads = document.getElementsByClassName('playhead');
+    Array.from(playheads).forEach(ph => ph.style.display = 'none');
+  }
+
+  function playSegment() {
+    if (currentTrackIndex === -1 || currentTrackIndex >= playlist.length || playbackMode !== 'jump' || isPaused) return;
+
+    const track = playlist[currentTrackIndex];
+    const duration = parseFloat(playDurationInput.value) || 0.5;
+    const jump = parseFloat(jumpIntervalInput.value) || 10;
+    const speed = parseFloat(speedSlider.value) || 1.0;
+
+    if (currentTrackTimeOffset >= track.buffer.duration) {
+      handleTrackFinished();
+      return;
+    }
+
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    currentSource = audioCtx.createBufferSource();
+    currentSource.buffer = track.buffer;
+    currentSource.playbackRate.setValueAtTime(speed, audioCtx.currentTime);
+    currentSource.connect(gainNode);
+
+    movePlayhead(currentTrackIndex, currentTrackTimeOffset / track.buffer.duration);
+
+    // Dynamic processing length mapping to current speed modifications
+    currentSource.start(0, currentTrackTimeOffset, duration);
+    
+    currentSource.onended = () => {
+      // Advance offsets sequentially if it isn't killed prematurely by pauses
+      if(!isPaused && currentSource) {
+         currentTrackTimeOffset += duration + jump;
+         playSegment();
+      }
+    };
+  }
+
+  function playNormalStream() {
+    if (currentTrackIndex === -1 || currentTrackIndex >= playlist.length || playbackMode !== 'normal' || isPaused) return;
+
+    const track = playlist[currentTrackIndex];
+    const speed = parseFloat(speedSlider.value) || 1.0;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    currentSource = audioCtx.createBufferSource();
+    currentSource.buffer = track.buffer;
+    currentSource.playbackRate.setValueAtTime(speed, audioCtx.currentTime);
+    currentSource.connect(gainNode);
+
+    const startTime = currentTrackTimeOffset;
+    normalModeAudioCtxStart = audioCtx.currentTime;
+
+    currentSource.start(0, startTime);
+    
+    const playhead = document.getElementById(`playhead-${currentTrackIndex}`);
+    if (playhead) playhead.style.display = 'block';
+
+    updatePlayheadInterval = setInterval(() => {
+      const elapsed = (audioCtx.currentTime - normalModeAudioCtxStart) * parseFloat(speedSlider.value);
+      const totalCurrentTime = startTime + elapsed;
+      
+      if (totalCurrentTime >= track.buffer.duration) {
+        clearInterval(updatePlayheadInterval);
+        handleTrackFinished();
+      } else {
+        movePlayhead(currentTrackIndex, totalCurrentTime / track.buffer.duration);
+      }
+    }, 100);
+
+    currentSource.onended = () => {
+      if (playbackMode === 'normal' && !isPaused) {
+        const elapsed = (audioCtx.currentTime - normalModeAudioCtxStart) * parseFloat(speedSlider.value);
+        if ((startTime + elapsed) >= track.buffer.duration - 0.1) {
+          clearInterval(updatePlayheadInterval);
+          handleTrackFinished();
+        }
+      }
+    };
+  }
+
+  function movePlayhead(index, percentage) {
+    const playhead = document.getElementById(`playhead-${index}`);
+    if (playhead) {
+      playhead.style.display = 'block';
+      playhead.style.left = Math.min(percentage * 100, 100) + '%';
+    }
+  }
+
+  function handleTrackFinished() {
+    stopEverything();
+    if (autoPlayCheck.checked && currentTrackIndex + 1 < playlist.length) {
+      playTrackInJumpMode(currentTrackIndex + 1);
+    } else {
+      stopEverything();
+    }
+  }
+
+  function stopEverything() {
+    clearInterval(updatePlayheadInterval);
+    if (currentSource) {
+      try { currentSource.stop(); } catch(e) {}
+      currentSource = null;
+    }
+  }
+
+  // New Smart Pause / Resume Logic Handler
+  pauseBtn.addEventListener('click', () => {
+    if (currentTrackIndex === -1) return;
+
+    if (!isPaused) {
+      // Pausing actions
+      isPaused = true;
+      pauseBtn.textContent = "Resume";
+      
+      if (playbackMode === 'normal') {
+        clearInterval(updatePlayheadInterval);
+        const elapsed = (audioCtx.currentTime - normalModeAudioCtxStart) * parseFloat(speedSlider.value);
+        currentTrackTimeOffset += elapsed;
+      }
+      stopEverything();
+    } else {
+      // Resuming actions
+      isPaused = false;
+      pauseBtn.textContent = "Pause";
+      if (playbackMode === 'jump') {
+        playSegment();
+      } else {
+        playNormalStream();
+      }
+    }
+  });
+
+  stopBtn.addEventListener('click', () => {
+    stopEverything();
+    currentTrackIndex = -1;
+    isPaused = false;
+    pauseBtn.textContent = "Pause";
+    const elements = document.getElementsByClassName('track-item');
+    Array.from(elements).forEach(el => el.classList.remove('active'));
+    const playheads = document.getElementsByClassName('playhead');
+    Array.from(playheads).forEach(ph => ph.style.display = 'none');
+  });
+</script>
+
+</body>
+</html>
