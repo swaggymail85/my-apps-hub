@@ -92,6 +92,7 @@
             align-items: center;
             flex: 1;
             min-height: 0; /* Allows inner content to structure properly */
+            position: relative; /* Anchor point for loading absolute positioning */
         }
 
         h1 {
@@ -168,6 +169,40 @@
             gap: 20px;
             overflow-y: auto;
             align-content: start;
+        }
+
+        /* Vintage Loading Screen Box Component */
+        #loading-screen {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background-color: #d4d0c8;
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            color: #000;
+        }
+
+        .pixel-art-wizard {
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: retro-bounce 1s steps(2, start) infinite;
+        }
+
+        .loading-text {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        @keyframes retro-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
         }
 
         /* Smooth Iframe Container for App Execution */
@@ -261,7 +296,12 @@
                     </div>
                 </div>
 
-                <iframe id="app-frame" src=""></iframe>
+                <div id="loading-screen">
+                    <div class="pixel-art-wizard">🧙‍♂️⏳</div>
+                    <div class="loading-text">Your App is Loading, wait 10 seconds please...</div>
+                </div>
+
+                <iframe id="app-frame" src="" onload="hideLoading()"></iframe>
             </div>
         </main>
 
@@ -320,24 +360,37 @@
 
         // FUNCTION TO LAUNCH THE APP INSIDE THE IFRAME
         function launchApp(url, title) {
-            document.getElementById('main-headers').style.display = 'none'; // Hide headers/donate button
+            document.getElementById('main-headers').style.display = 'none'; // Hide headers
             document.getElementById('apps-container').style.display = 'none'; // Hide grid
             
+            // Activate retro loading box instead of showing iframe immediately
+            document.getElementById('loading-screen').style.display = 'flex';
+            
             const frame = document.getElementById('app-frame');
-            frame.src = url; // Inject the app file
-            frame.style.display = 'block'; // Show app frame
+            frame.src = url; // Inject the app file and begin hidden stream compilation
             
             document.getElementById('back-button').style.display = 'block'; // Show back arrow
             document.getElementById('window-title').innerText = `💻 Running: C:\\WebApps\\${title.toLowerCase().replace(' ', '_')}.exe`; // Change title bar
         }
 
+        // TRIGGERED DIRECTLY VIA NATIVE IFRAME ONLOAD PROPERTY
+        function hideLoading() {
+            const frame = document.getElementById('app-frame');
+            // Ensure we only show it if an actual source link is actively processed
+            if (frame.src !== "" && frame.src !== window.location.href) {
+                document.getElementById('loading-screen').style.display = 'none'; // Turn off loading element
+                frame.style.display = 'block'; // Reveal ready application workspace
+            }
+        }
+
         // FUNCTION TO CLOSE APP AND GO BACK TO SYSTEM DIRECTORY
         function closeApp() {
             const frame = document.getElementById('app-frame');
-            frame.src = ''; // Clear memory
             frame.style.display = 'none'; // Hide frame
+            frame.src = ''; // Clear memory pipeline
             
-            document.getElementById('main-headers').style.display = 'block'; // Bring headers/donate button back!
+            document.getElementById('loading-screen').style.display = 'none'; // Safeguard clear loading display
+            document.getElementById('main-headers').style.display = 'block'; // Bring headers/donate button back
             document.getElementById('apps-container').style.display = 'grid'; // Show icons again
             document.getElementById('back-button').style.display = 'none'; // Hide back arrow
             document.getElementById('window-title').innerText = "📁 Application Manager - C:\\WebApps"; // Reset title bar
