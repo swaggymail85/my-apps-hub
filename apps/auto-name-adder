@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Genre Track Renamer</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 12px; text-align: center; max-width: 460px; width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        
+        /* Genre Selector Styles */
+        .genre-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }
+        .genre-btn { background: #2a2a2a; color: #aaa; border: 2px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; }
+        .genre-btn:hover { background: #333; color: #fff; }
+        .genre-btn.active { border-color: #673ab7; background: #24143e; color: #e1bee7; }
+        
+        input[type="file"] { margin: 20px 0 10px 0; width: 100%; color: #ccc; }
+        
+        /* Checkbox Styling */
+        .option-container { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; font-size: 14px; color: #ccc; cursor: pointer; user-select: none; }
+        .option-container input { cursor: pointer; accent-color: #673ab7; width: 16px; height: 16px; }
+
+        button.action-btn { color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; margin-bottom: 10px; }
+        .btn-primary { background: #673ab7; }
+        .btn-primary:hover { background: #512da8; }
+        .btn-success { background: #2e7d32; display: none; }
+        .btn-success:hover { background: #1b5e20; }
+        button:disabled { background: #444; color: #888; cursor: not-allowed; }
+        #status { margin: 15px 0; color: #b39ddb; font-size: 14px; font-weight: 500; }
+        .reset-link { color: #aaa; text-decoration: underline; cursor: pointer; font-size: 13px; display: none; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+
+<div class="card">
+    <h2>Multi-Genre Playlist Renamer</h2>
+    <p style="color: #aaa; font-size: 14px; margin-bottom: 5px;">Select your aesthetic pool, drop your tracks, and automatically generate non-repeating layouts.</p>
+    
+    <div class="genre-container">
+        <button class="genre-btn active" onclick="setGenre('dnb')">🔊 DnB & Jungle</button>
+        <button class="genre-btn" onclick="setGenre('lofi')">☕ Cozy Lofi</button>
+        <button class="genre-btn" onclick="setGenre('vaporwave')">🌴 Vaporwave 1995</button>
+        <button class="genre-btn" onclick="setGenre('ambient')">🌧️ Deep Ambient</button>
+    </div>
+    
+    <input type="file" id="fileInput" accept=".mp3" multiple>
+    
+    <label class="option-container">
+        <input type="checkbox" id="keepOldNameCheckbox" checked>
+        Keep original filename in brackets
+    </label>
+    
+    <button id="processBtn" class="action-btn btn-primary" disabled>Rename & Process</button>
+    <button id="downloadBtn" class="action-btn btn-success">Download ZIP</button>
+    
+    <div id="status"></div>
+    <span id="resetLink" class="reset-link">Clear and restart</span>
+</div>
+
+<script>
+    // Genre pools dictionary
+    const genrePools = {
+        dnb: [
+            'electric', 'midnight', 'crimson', 'neon', 'velvet', 'silent', 'golden', 'lost', 'dark', 'liquid', 'lunar', 'solar', 'secret', 'urban', 'vintage', 'cosmic', 'savage', 'bitter', 'sweet', 'static', 'infinite', 'hidden', 'phantom', 'analog', 'digital', 'spectral', 'haunted', 'glowing', 'frozen', 'burning', 'crystal', 'distant', 'broken', 'wild', 'heavy', 'light', 'smooth', 'rough', 'plastic', 'sonic', 'stellar', 'glitchy', 'ethereal', 'sublime', 'retro', 'modern', 'future', 'ancient', 'raw', 'cooked', 'dirty', 'clean', 'acid', 'alkaline', 'cosmopolitan', 'magnetic', 'kinetic', 'atomic', 'nuclear', 'radioactive', 'toxic', 'pure', 'corrupt', 'noble', 'royal', 'hustler', 'ghetto', 'boujee', 'classy', 'reckless', 'cautious', 'blind', 'vivid', 'faded', 'sharp', 'blunt', 'hazy', 'misty', 'cloudy', 'sunny', 'rainy', 'stormy', 'windy', 'muddy', 'dusty', 'sandy', 'icy', 'fiery', 'smoky', 'ashy', 'shadowy', 'ghostly', 'holy', 'profane', 'sacred', 'ritual', 'mythic', 'legendary', 'epic', 'classic', 'doomed', 'blessed', 'cursed', 'lucky', 'charmed', 'fatal', 'lethal', 'vital', 'mortal', 'immortal', 'galactic', 'universal', 'global', 'local', 'native', 'foreign', 'alien', 'exotic', 'rare', 'common', 'public', 'private', 'inner', 'outer', 'upper', 'lower', 'underground', 'overhead', 'deep', 'shallow', 'high', 'low', 'fast', 'slow', 'rapid', 'steady', 'shaky', 'stable', 'volatile', 'explosive', 'loud', 'noisy', 'quiet', 'calm', 'chaotic', 'random', 'strict', 'loose', 'tight', 'hollow', 'solid', 'soft', 'hard', 'brittle', 'tough', 'weak', 'strong', 'bold', 'timid', 'fierce', 'gentle', 'cruel', 'kind', 'bittersweet', 'echo', 'vibe', 'dream', 'groove', 'night', 'wave', 'heart', 'rhythm', 'shadow', 'sky', 'horizon', 'memory', 'chaser', 'storm', 'whisper', 'drive', 'pulse', 'bliss', 'theory', 'mirage', 'spark', 'ghost', 'escape', 'player', 'highway', 'ocean', 'glitch', 'signal', 'radio', 'smoke', 'mirror', 'diamond', 'dust', 'rebel', 'summer', 'winter', 'autumn', 'spring', 'city', 'runaway', 'fever', 'motion', 'gravity', 'vortex', 'frequency', 'thunder', 'rain', 'paradise', 'inferno', 'purgatory', 'heaven', 'hell', 'abyss', 'summit', 'valley', 'river', 'stream', 'lake', 'sea', 'desert', 'jungle', 'forest', 'woods', 'island', 'coast', 'shore', 'beach', 'mountain', 'hill', 'cliff', 'cave', 'tunnel', 'bridge', 'tower', 'castle', 'palace', 'temple', 'shrine', 'altar', 'grave', 'tomb', 'monument', 'statue', 'fountain', 'square', 'street', 'alley', 'lane', 'avenue', 'boulevard', 'road', 'path', 'trail', 'track', 'route', 'journey', 'voyage', 'flight', 'cruise', 'safari', 'expedition', 'mission', 'quest', 'hunt', 'race', 'game', 'match', 'play', 'show', 'drama', 'movie', 'film', 'cinema', 'theatre', 'stage', 'curtain', 'actor', 'star', 'idol', 'hero', 'villain', 'monster', 'creature', 'beast', 'animal', 'bird', 'fish', 'insect', 'reptile', 'dinosaur', 'dragon', 'phoenix', 'unicorn', 'cyborg', 'robot', 'android', 'machine', 'engine', 'motor', 'wheel', 'gear', 'chain', 'lock', 'key', 'door', 'gate', 'window', 'wall', 'roof', 'floor', 'room', 'house', 'home', 'building', 'structure', 'empire', 'kingdom', 'state', 'nation', 'country', 'land', 'world', 'planet', 'moon', 'sun', 'galaxy', 'universe', 'cosmos', 'space', 'orbit', 'rocket', 'shuttle', 'satellite', 'station', 'base', 'camp', 'fort', 'bunker', 'shelter', 'sanctuary', 'asylum', 'refuge', 'haven', 'harbor', 'port', 'dock', 'ship', 'boat', 'vessel', 'fleet', 'crew', 'captain', 'pilot', 'driver', 'rider', 'runner', 'walker', 'stroller', 'wanderer', 'drifter', 'nomad', 'pilgrim', 'seeker', 'finder', 'keeper', 'loser', 'winner', 'champion', 'legend', 'myth', 'fable', 'tale', 'story', 'novel', 'book', 'page', 'line', 'letter', 'note', 'chord', 'tune', 'song', 'album', 'record', 'tape', 'disc', 'vinyl', 'wire', 'cable', 'cord', 'string', 'thread', 'rope', 'knot', 'tie', 'bow', 'arrow', 'spear', 'shield', 'armor', 'sword', 'blade', 'edge', 'point', 'tip', 'top', 'bottom', 'side', 'front', 'back', 'end', 'start', 'beginning', 'origin', 'source', 'root', 'stem', 'branch', 'leaf', 'flower', 'bloom', 'blossom', 'petal', 'seed', 'fruit', 'berry', 'nut', 'grain', 'wheat', 'corn', 'rice', 'bread', 'food', 'meat', 'bone', 'flesh', 'blood', 'skin', 'fur', 'feather', 'scale', 'shell', 'horn', 'fang', 'claw', 'paw', 'hoof', 'tail', 'wing', 'emerald', 'sapphire', 'ruby', 'topaz', 'opal', 'quartz', 'amber', 'amethyst', 'granite', 'marble', 'basalt', 'obsidian', 'slate', 'flint', 'clay', 'mud', 'dirt', 'sand', 'gravel', 'stone', 'rock', 'pebble', 'boulder', 'fossil', 'coral', 'sponge', 'weed', 'kelp', 'moss', 'fern', 'ivy', 'vine', 'grass', 'reed', 'rush', 'clover', 'daisy', 'rose', 'lily', 'tulip', 'orchid', 'violet', 'lotus', 'sunflower', 'poppy', 'jasmine', 'lavender', 'mint', 'sage', 'thyme', 'basil', 'garlic', 'onion', 'pepper', 'salt', 'sugar', 'honey', 'wax', 'oil', 'tar', 'pitch', 'resin', 'gum', 'glue', 'ink', 'paint', 'dye', 'stain', 'varnish', 'lacquer', 'enamel', 'glaze', 'glass', 'lens', 'prism', 'laser', 'beam', 'ray', 'flash', 'flare', 'glare', 'gleam', 'glimmer', 'glisten', 'glitter', 'glow', 'spark', 'sparkle', 'twinkle', 'shine', 'blaze', 'flame', 'fire', 'smoke', 'fume', 'steam', 'vapor', 'mist', 'fog', 'cloud', 'haze', 'smog', 'dust', 'ash', 'soot', 'cinder', 'coal', 'charcoal', 'coke', 'peat', 'wood', 'timber', 'lumber', 'log', 'plank', 'board', 'beam', 'post', 'pole', 'stake', 'peg', 'pin', 'nail', 'screw', 'bolt', 'nut', 'washer', 'rivet', 'weld', 'joint', 'hinge', 'latch', 'catch', 'padlock', 'shackle', 'chain', 'link', 'ring', 'hoop', 'loop', 'coil', 'spiral', 'helix', 'spring', 'wire', 'cable', 'cord', 'string', 'thread', 'yarn', 'twine', 'rope', 'hawser', 'line', 'strand', 'fiber', 'web', 'net', 'mesh', 'lattice', 'grille', 'screen', 'curtain', 'veil', 'shroud', 'cloak', 'mantle', 'robe', 'gown', 'dress', 'skirt', 'coat', 'jacket', 'vest', 'shirt', 'pants', 'shorts', 'socks', 'shoes', 'boots', 'slippers', 'sandals', 'gloves', 'mittens', 'hat', 'cap', 'bonnet', 'hood', 'helmet', 'crown', 'tiara', 'diadem', 'wreath', 'garland', 'ribbon', 'band', 'belt', 'strap', 'collar', 'leash', 'harness', 'saddle', 'bridle', 'bit', 'spur', 'whip', 'cane', 'staff', 'crutch', 'rod', 'wand', 'baton', 'scepter', 'mace', 'club', 'cudgel', 'bat', 'racket', 'paddle', 'oar', 'rudder', 'sail', 'mast', 'boom', 'hull', 'deck', 'cabin', 'anchor', 'buoy', 'beacon', 'lighthouse', 'pier', 'wharf', 'quay', 'jetty', 'breakwater', 'dyke', 'dam', 'weir', 'sluice', 'valve', 'pump', 'pipe', 'tube', 'hose', 'nozzle', 'funnel', 'bucket', 'pail', 'can', 'jug', 'pitcher', 'bottle', 'flask', 'vial', 'jar', 'pot', 'pan', 'kettle', 'bowl', 'dish', 'plate', 'saucer', 'cup', 'mug', 'tumbler', 'chalice', 'goblet', 'tankard', 'flagon', 'decanter', 'carafe', 'barrel', 'cask', 'tun', 'vat', 'tub', 'bin', 'box', 'chest', 'crate', 'trunk', 'case', 'bag', 'sack', 'pouch', 'purse', 'wallet', 'pocket', 'sheath', 'scabbard', 'holster', 'quiver', 'capsule', 'pod', 'husk', 'bark', 'skin', 'hide', 'pelt', 'wool', 'fleece', 'hair', 'mane', 'tail', 'feather', 'down', 'plume', 'quill', 'wing', 'fin', 'scale', 'carapace', 'plastron', 'beak', 'bill', 'snout', 'muzzle', 'jaw', 'tooth', 'fang', 'tusk', 'horn', 'antler', 'hoof', 'claw', 'talon', 'foot', 'leg', 'arm', 'hand', 'finger', 'thumb', 'toe', 'flipper', 'tentacle', 'antenna', 'feeler', 'whisker', 'crest', 'comb', 'wattle', 'sac', 'blister', 'gall', 'wart', 'mole', 'freckle', 'spot', 'speck', 'dot', 'stripe', 'streak', 'bar', 'burst', 'explosion', 'blast', 'detonation', 'report', 'bang', 'pop', 'crack', 'snap', 'click', 'tick', 'tock', 'chime', 'gong', 'bell', 'buzz', 'hum', 'drone', 'whine', 'whistle', 'hiss', 'fizz', 'sputter', 'crackle', 'rustle', 'murmur', 'whisper', 'sigh', 'groan', 'moan', 'wail', 'cry', 'shout', 'yell', 'scream', 'shriek', 'howl', 'bark', 'growl', 'snarl', 'grunt', 'snort', 'chirp', 'tweet', 'trill', 'warble', 'sing', 'song', 'tune', 'melody', 'air', 'theme', 'motif', 'chord', 'harmony', 'discord', 'noise', 'din', 'clamor', 'uproar', 'hubbub', 'commotion', 'disturbance', 'riot', 'tumult', 'chaos', 'disorder', 'confusion', 'jumble', 'muddle', 'mess', 'clutter', 'litter', 'rubbish', 'trash', 'garbage', 'waste', 'refuse', 'debris', 'wreckage', 'ruins', 'remains', 'relics', 'vestiges', 'traces', 'marks', 'prints', 'tracks', 'trails', 'footprints', 'spoor', 'scent', 'odor', 'smell', 'fragrance', 'perfume', 'aroma', 'bouquet', 'savor', 'taste', 'flavor', 'tang', 'relish', 'zest', 'spice', 'seasoning', 'sauce', 'gravy', 'soup', 'broth', 'stew', 'mash', 'paste', 'dough', 'batter', 'mixture', 'blend', 'compound', 'alloy', 'amalgam', 'composite', 'aggregate', 'mass', 'heap', 'pile', 'stack', 'cluster', 'clump', 'bunch', 'group', 'crowd', 'throng', 'swarm', 'flock', 'herd', 'pack', 'pride', 'school', 'shoal', 'colony', 'brood', 'family', 'tribe', 'clan', 'population', 'society', 'community', 'association', 'guild', 'union', 'league', 'alliance', 'coalition', 'federation', 'confederation', 'realm', 'dominion', 'republic', 'commonwealth', 'province', 'county', 'shire', 'district', 'region', 'area', 'zone', 'sector', 'quarter', 'ward', 'parish', 'borough', 'metropolis', 'megalopolis', 'suburb', 'village', 'hamlet', 'settlement', 'outpost', 'garrison', 'camp', 'encampment', 'bivouac', 'shelter', 'refuge', 'asylum', 'sanctuary', 'retreat', 'hermitage', 'monastery', 'convent', 'abbey', 'priory', 'cathedral', 'church', 'chapel', 'mosque', 'synagogue', 'pagoda', 'sepulcher', 'vault', 'crypt', 'catacomb', 'cemetery', 'graveyard', 'churchyard', 'necropolis', 'monument', 'memorial', 'sculpture', 'carving', 'engraving', 'inscription', 'epitaph', 'scroll', 'parchment', 'papyrus', 'paper', 'folio', 'volume', 'tome', 'codex', 'manuscript', 'document', 'charter', 'deed', 'will', 'testament', 'contract', 'treaty', 'pact', 'covenant', 'bond', 'pledge', 'oath', 'vow', 'promise', 'speech', 'talk', 'conversation', 'dialogue', 'discourse', 'lecture', 'sermon', 'homily', 'address', 'oration', 'declamation', 'harangue', 'tirade', 'rant', 'chatter', 'prattle', 'babble', 'gossip', 'rumor', 'tidings', 'message', 'letter', 'note', 'memo', 'dispatch', 'bulletin', 'journal', 'diary', 'log', 'record', 'register', 'roll', 'list', 'catalog', 'inventory', 'index', 'table', 'chart', 'map', 'atlas', 'globe', 'sphere', 'orb', 'ball', 'bullet', 'pellet', 'shot', 'bomb', 'mine', 'torpedo', 'missile', 'arrow', 'bolt', 'dart', 'spear', 'lance', 'pike', 'halberd', 'javelin', 'harpoon', 'trident', 'dagger', 'knife', 'dirk', 'stiletto', 'poniard', 'bayonet', 'saber', 'rapier', 'foil', 'epee', 'cutlass', 'scimitar', 'claymore', 'broadsword', 'axe', 'hatchet', 'tomahawk', 'cleaver', 'machete', 'scythe', 'sickle', 'billhook', 'pruner', 'shears', 'scissors', 'clippers', 'razor', 'blade', 'scraper', 'chisel', 'gouge', 'plane', 'file', 'rasp', 'saw', 'drill', 'awl', 'gimlet', 'borer', 'punch', 'die', 'stamp', 'press', 'hammer', 'mallet', 'maul', 'sledge', 'anvil', 'forge', 'furnace', 'kiln', 'oven', 'stove', 'hearth', 'fireplace', 'chimney', 'flue', 'vent', 'conduit', 'channel', 'canal', 'ditch', 'trench', 'moat', 'furrow', 'groove', 'slot', 'notch', 'slit', 'gash', 'cut', 'wound', 'scar', 'trajectory', 'pathway', 'footpath', 'sidewalk', 'pavement', 'floor', 'ground', 'earth', 'silt', 'bedrock', 'crust', 'mantle', 'core', 'center', 'middle', 'midst', 'kernel', 'nucleus', 'atom', 'molecule', 'particle', 'speck', 'grain', 'drop', 'bubble', 'foam', 'froth', 'scum', 'dross', 'slag', 'artifacts', 'antiquities', 'treasures', 'wealth', 'riches', 'fortune', 'estate', 'property', 'possessions', 'goods', 'chattels', 'effects', 'baggage', 'luggage', 'cargo', 'freight', 'load', 'burden', 'weight', 'mass', 'bulk', 'volume', 'size', 'dimension', 'extent', 'measure', 'scale', 'degree', 'grade', 'rank', 'class', 'order', 'genus', 'species', 'lineage', 'descent', 'ancestry', 'heritage', 'inheritance', 'legacy', 'bequest', 'gift', 'donation', 'grant', 'subsidy', 'allowance', 'pension', 'pay', 'wages', 'salary', 'fee', 'charge', 'cost', 'price', 'expense', 'outlay', 'expenditure', 'spending', 'extravagance', 'luxury', 'comfort', 'ease', 'peace', 'quiet', 'rest', 'sleep', 'slumber', 'nightmare', 'vision', 'apparition', 'brain', 'intellect', 'reason', 'sense', 'wisdom', 'knowledge', 'lore', 'learning', 'science', 'art', 'skill', 'craft', 'trade', 'business', 'commerce', 'traffic', 'barter', 'exchange', 'sale', 'purchase', 'buying', 'selling', 'market', 'fair', 'bazaar', 'shop', 'store', 'boutique', 'stalls', 'booth', 'counter', 'desk', 'office', 'bureau', 'department', 'agency', 'board', 'council', 'senate', 'parliament', 'assembly', 'court', 'tribunal', 'bench', 'bar', 'law', 'statute', 'decree', 'edict', 'order', 'command', 'rule', 'regulation', 'canon', 'code', 'charter', 'constitution', 'brotherhood', 'sisterhood', 'lodge', 'chapter', 'branch', 'section', 'division', 'series', 'sequence', 'succession', 'train', 'file', 'row', 'queue', 'tier', 'layer', 'stratum', 'bed', 'seam', 'vein', 'lode', 'shaft', 'column', 'pillar', 'splinter', 'shiver', 'shard', 'fragment', 'scrap', 'crumb', 'morsel', 'bit', 'piece', 'part', 'portion', 'share', 'allotment', 'quota', 'contingent', 'batch', 'lot', 'set', 'suite', 'run', 'spell', 'turn', 'bout', 'round', 'cycle', 'period', 'term', 'season', 'age', 'era', 'epoch', 'eon', 'eternity', 'time', 'space', 'matter', 'substance', 'material', 'fabric', 'tissue', 'flesh', 'leather', 'silk', 'cotton', 'linen', 'hemp', 'jute', 'flax', 'tow', 'oakum', 'porcelain', 'china', 'earthenware', 'pottery', 'terracotta', 'brick', 'tile', 'cloth', 'body', 'corpse', 'carcass', 'skeleton', 'bones', 'skull', 'head', 'face', 'features', 'countenance', 'look', 'air', 'mien', 'bearing', 'carriage', 'posture', 'pose', 'attitude', 'gesture', 'sign', 'signal', 'token', 'symbol', 'emblem', 'badge', 'insignia', 'banner', 'flag', 'pennant', 'streamer', 'standard', 'colors', 'ensign', 'jack', 'pendant', 'girdle', 'sash', 'scarf', 'coronet', 'chaplet', 'necklace', 'bracelet', 'earring', 'brooch', 'buckle', 'clasp', 'button', 'stud', 'link', 'hook', 'eye', 'lace', 'thong', 'scourge', 'lash', 'bamboo', 'straw', 'jade', 'jasper', 'agate', 'onyx', 'carnelian', 'chalcedony', 'chrysoprase', 'sardonyx', 'bloodstone', 'heliotrope', 'garnet', 'chrysolite', 'peridot', 'olivine', 'zircon', 'hyacinth', 'jacinth', 'tourmaline', 'schorl', 'rubellite', 'indicolite', 'beryl', 'aquamarine', 'morganite', 'heiodor', 'euclase', 'phenakite', 'hiddenite', 'kunzite', 'spodumene', 'diopside', 'enstatite', 'hypersthene', 'bronzite', 'augite', 'diallage', 'hornblende', 'actinolite', 'tremolite', 'nephrite', 'jadeite', 'fibrolite', 'sillimanite', 'andalusite', 'chiastolite', 'cyanite', 'kyanite', 'staurolite', 'idocrase', 'vesuvianite', 'epidote', 'allanite', 'orthite', 'zoisite', 'thulite', 'clinozoisite', 'piedmontite', 'axinite', 'prehnite', 'datolite', 'danburite', 'apophyllite', 'pectolite', 'natrolite', 'scolecite', 'mesolite', 'thomsonite', 'analcime', 'chabazite', 'gmelinite', 'phillipsite', 'harmotome', 'stilbite', 'heulandite', 'brewsterite', 'epistilbite', 'mordenite', 'laumontite'
+        ],
+        lofi: [
+            'bumblebee', 'ladybug', 'firefly', 'caterpillar', 'snail', 'cricket', 'honeybee', 'beetle', 'moth', 'butterfly',
+            'dragonfly', 'inchworm', 'grasshopper', 'pillbug', 'seedling', 'sprout', 'hedgehog', 'bunny', 'kitten', 'puppy',
+            'daisy', 'lavender', 'clover', 'tulip', 'orchid', 'violet', 'lotus', 'sunflower', 'poppy', 'jasmine',
+            'marigold', 'dandelion', 'peony', 'lilac', 'dahlia', 'camellia', 'magnolia', 'primrose', 'buttercup', 'bluebell',
+            'fern', 'ivy', 'moss', 'petal', 'blossom', 'bloom', 'willow', 'maple', 'cloverpatch', 'meadow',
+            'cozy', 'warm', 'sleepy', 'dreamy', 'soft', 'mellow', 'gentle', 'peaceful', 'calm', 'tender',
+            'sweet', 'kind', 'happy', 'bright', 'sunny', 'cloudy', 'misty', 'hazy', 'faded', 'vintage',
+            'snug', 'comfy', 'blissful', 'cheerful', 'pure', 'magical', 'nostalgic', 'radiant', 'glowing', 'sparkling',
+            'honey', 'latte', 'cocoa', 'matcha', 'chai', 'tea', 'cookie', 'waffle', 'pancake', 'cinnamon',
+            'vanilla', 'berry', 'peach', 'cherry', 'plum', 'apricot', 'toast', 'muffin', 'cupcake', 'pastry',
+            'blanket', 'pillow', 'sweater', 'socks', 'pajamas', 'fireplace', 'candle', 'teapot', 'cottage', 'garden',
+            'breeze', 'rain', 'raindrop', 'shower', 'puddle', 'cloud', 'sky', 'sun', 'moon', 'star',
+            'starlight', 'moonbeam', 'sunshine', 'dawn', 'dusk', 'sunset', 'sunrise', 'twilight', 'autumn', 'spring',
+            'summer', 'winter', 'river', 'stream', 'brook', 'pond', 'lake', 'woods', 'forest', 'valley',
+            'whisper', 'murmur', 'hum', 'rustle', 'crackle', 'sigh', 'drift', 'float', 'soar', 'wander',
+            'stroll', 'nap', 'slumber', 'dream', 'rest', 'chill', 'vibe', 'groove', 'echo', 'pulse',
+            'melody', 'tune', 'song', 'chord', 'harmony', 'rhythm', 'lullaby', 'note', 'sketch', 'page'
+        ],
+        vaporwave: [
+            'cyber', 'mall', 'plaza', 'glitch', 'neon', 'prism', 'chrome', 'deluxe', 'virtual', 'synthetic',
+            'digital', 'windows', 'system', 'laser', 'vector', 'pixel', 'grid', 'static', 'signal', 'network',
+            'resort', 'palm', 'sunset', 'horizon', 'ocean', 'beach', 'coast', 'island', 'paradise', 'cruise',
+            'marina', 'bay', 'lagoon', 'aqua', 'turqouise', 'magenta', 'pink', 'violet', 'pastel', 'purple',
+            'marble', 'statue', 'pillar', 'column', 'atrium', 'arcade', 'lobby', 'lounge', 'suite', 'tower',
+            'cassette', 'vinyl', 'vhs', 'tape', 'laserdisc', 'floppy', 'drive', 'disk', 'modem', 'console',
+            'retro', 'vintage', 'future', 'modern', 'classic', 'antique', 'timeless', 'infinite', 'eternal', 'cosmic',
+            'dream', 'mirage', 'phantom', 'echo', 'shadow', 'vision', 'illusion', 'memory', 'fantasy', 'nostalgia',
+            'glamour', 'luxury', 'prestige', 'elite', 'corporate', 'executive', 'office', 'bureau', 'agency', 'venture',
+            'night', 'midnight', 'twilight', 'dusk', 'dawn', 'sunrise', 'afterglow', 'moonlight', 'starlight', 'skyline',
+            'fever', 'pulse', 'vibe', 'groove', 'motion', 'fluid', 'liquid', 'wave', 'current', 'stream',
+            'air', 'breeze', 'wind', 'mist', 'haze', 'cloud', 'fog', 'vapor', 'steam', 'smoke',
+            'simulated', 'hologram', 'unreal', 'artificial', 'fake', 'imitation', 'replica', 'clone', 'matrix', 'realm',
+            'sonic', 'stereo', 'audio', 'sound', 'track', 'channel', 'frequency', 'broadcast', 'radar', 'sonar',
+            'commercial', 'product', 'brand', 'market', 'shop', 'boutique', 'store', 'bazaar', 'center', 'hub',
+            'tokyo', 'miami', 'osaka', 'kyoto', 'vegas', 'malibu', 'fiji', 'hawaii', 'tahiti', 'ibiza'
+        ],
+        ambient: [
+            'bleak', 'cold', 'dark', 'dim', 'faded', 'faint', 'gloom', 'gray', 'grey', 'grim',
+            'pale', 'shadow', 'somber', 'weary', 'worn', 'bitter', 'frozen', 'ice', 'icy', 'chill',
+            'chilled', 'frost', 'frosty', 'winter', 'bleeding', 'broken', 'decay', 'decayed', 'dying', 'lost',
+            'ruin', 'ruined', 'waste', 'wasted', 'sunless', 'starless', 'endless', 'boundless', 'infinite', 'timeless',
+            'hollow', 'empty', 'void', 'abyss', 'chasm', 'gulf', 'pit', 'blank', 'bare', 'stark',
+            'lonely', 'lone', 'solitary', 'apart', 'distant', 'remote', 'far', 'hidden', 'veiled', 'shrouded',
+            'buried', 'sunken', 'drowned', 'submerged', 'fallen', 'forgotten', 'forsaken', 'abandoned', 'deserted', 'neglected',
+            'haunted', 'ghostly', 'phantom', 'spirit', 'wraith', 'specter', 'spectral', 'shadowy', 'murky', 'obscure',
+            'cloud', 'cloudy', 'fog', 'foggy', 'haze', 'hazy', 'mist', 'misty', 'murk', 'smog',
+            'rain', 'rainy', 'raindrop', 'rainfall', 'shower', 'storm', 'stormy', 'tempest', 'drizzle', 'weeping',
+            'tears', 'grief', 'sorrow', 'sad', 'sadness', 'mourn', 'mournful', 'melancholic', 'melancholy', 'doleful',
+            'heavy', 'burden', 'weight', 'weariness', 'fatigue', 'exhausted', 'failing', 'sinking', 'waning', 'fading',
+            'whisper', 'murmur', 'sigh', 'groan', 'moan', 'wail', 'cry', 'weep', 'sob', 'lament',
+            'echo', 'reverb', 'resonance', 'drone', 'hum', 'buzz', 'hiss', 'static', 'noise', 'silence',
+            'silent', 'quiet', 'still', 'stillness', 'calm', 'peace', 'serene', 'tranquil', 'rest', 'sleep',
+            'slumber', 'dream', 'nightmare', 'vision', 'memory', 'past', 'history', 'time', 'age', 'epoch',
+            'eon', 'eternity', 'dust', 'dusty', 'ash', 'ashy', 'soot', 'cinder', 'ember', 'dying_ember'
+        ]
+    };
+
+    let selectedGenre = 'dnb';
+    let generatedZipBlob = null;
+
+    const fileInput = document.getElementById('fileInput');
+    const keepOldNameCheckbox = document.getElementById('keepOldNameCheckbox');
+    const processBtn = document.getElementById('processBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const statusDiv = document.getElementById('status');
+    const resetLink = document.getElementById('resetLink');
+
+    function setGenre(genre) {
+        if(fileInput.disabled) return; // Prevent changing genre mid-process
+        selectedGenre = genre;
+        document.querySelectorAll('.genre-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    fileInput.addEventListener('change', () => {
+        processBtn.disabled = fileInput.files.length === 0;
+        statusDiv.innerText = `${fileInput.files.length} file(s) selected.`;
+    });
+
+    function capitalize(word) {
+        if (!word) return '';
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }
+
+    processBtn.addEventListener('click', async () => {
+        const files = fileInput.files;
+        if (files.length === 0) return;
+
+        const keepOriginalName = keepOldNameCheckbox.checked;
+
+        processBtn.disabled = true;
+        fileInput.disabled = true;
+        keepOldNameCheckbox.disabled = true;
+        statusDiv.innerText = `Processing unique ${selectedGenre.toUpperCase()} titles...`;
+
+        const zip = new JSZip();
+        let availableWords = [...genrePools[selectedGenre]];
+        const usedFullNames = new Set();
+
+        let structures = [];
+        for (let s = 0; s < files.length; s++) {
+            structures.push(s % 3); 
+        }
+        
+        for (let s = structures.length - 1; s > 0; s--) {
+            const j = Math.floor(Math.random() * (s + 1));
+            [structures[s], structures[j]] = [structures[j], structures[s]];
+        }
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            let trackWords = [];
+            const chosenStructure = structures[i]; 
+
+            // Fallback safety valve if selected pool runs short of random pulls
+            if (availableWords.length < 5) {
+                availableWords = [...genrePools[selectedGenre]];
+            }
+
+            const pullWord = () => {
+                const index = Math.floor(Math.random() * availableWords.length);
+                return availableWords.splice(index, 1)[0]; 
+            };
+
+            if (chosenStructure > 0 && Math.random() < 0.05) {
+                trackWords.push(Math.random() < 0.7 ? 'The' : 'No');
+            }
+
+            if (chosenStructure === 0) {
+                trackWords.push(capitalize(pullWord()));
+            } else if (chosenStructure === 1) {
+                trackWords.push(capitalize(pullWord()));
+                trackWords.push(capitalize(pullWord()));
+            } else if (chosenStructure === 2) {
+                trackWords.push(capitalize(pullWord()));
+                trackWords.push(capitalize(pullWord()));
+                trackWords.push(capitalize(pullWord()));
+            }
+
+            const oldNameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+            let baseGeneratedName = trackWords.join(' ');
+            
+            // Layout customization depending on checkbox state
+            let finalTrackName = keepOriginalName 
+                ? `${baseGeneratedName} (${oldNameWithoutExt}).mp3` 
+                : `${baseGeneratedName}.mp3`;
+
+            let duplicateCounter = 1;
+            while (usedFullNames.has(finalTrackName)) {
+                finalTrackName = keepOriginalName 
+                    ? `${baseGeneratedName} ${duplicateCounter} (${oldNameWithoutExt}).mp3`
+                    : `${baseGeneratedName} ${duplicateCounter}.mp3`;
+                duplicateCounter++;
+            }
+            usedFullNames.add(finalTrackName);
+
+            zip.file(finalTrackName, file);
+        }
+
+        statusDiv.innerText = "Finalizing your ZIP package...";
+
+        zip.generateAsync({ type: "blob" }).then(function (content) {
+            generatedZipBlob = content;
+            statusDiv.style.color = "#81c784";
+            statusDiv.innerText = "All tracks processed uniquely!";
+            
+            processBtn.style.display = "none";
+            downloadBtn.style.display = "block";
+            resetLink.style.display = "inline-block";
+        }).catch(err => {
+            statusDiv.innerText = "Error packing zip.";
+            console.error(err);
+            processBtn.disabled = false;
+        });
+    });
+
+    downloadBtn.addEventListener('click', () => {
+        if (!generatedZipBlob) return;
+        const element = document.createElement('a');
+        element.href = URL.createObjectURL(generatedZipBlob);
+        element.download = `${selectedGenre}_named_playlist.zip`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    });
+
+    resetLink.addEventListener('click', () => {
+        generatedZipBlob = null;
+        fileInput.disabled = false;
+        keepOldNameCheckbox.disabled = false;
+        fileInput.value = "";
+        processBtn.disabled = true;
+        processBtn.style.display = "block";
+        downloadBtn.style.display = "none";
+        resetLink.style.display = "none";
+        statusDiv.style.color = "#b39ddb";
+        statusDiv.innerText = "Cleared. Ready for another stack.";
+    });
+</script>
+
+</body>
+</html>
