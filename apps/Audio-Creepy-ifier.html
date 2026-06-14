@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BACKROOMS AUDIO TRANSMISSION SYSTEM</title>
+    <style>
+        /* 90s/2000s Retro Desktop Style */
+        body {
+            background-color: #3a6ea5; 
+            color: #000000;
+            font-family: "MS Sans Serif", Geneva, sans-serif;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            user-select: none;
+        }
+
+        .app-window {
+            background-color: #d4d0c8;
+            border-top: 2px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .title-bar {
+            background: linear-gradient(90deg, #000080, #1084d0); 
+            color: #ffffff;
+            padding: 4px 6px;
+            font-weight: bold;
+            font-family: inherit;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #777;
+            text-shadow: 1px 1px #000;
+        }
+
+        .controls-panel {
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            background-color: #cbd2d6;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: bold;
+            flex: 1;
+            text-shadow: 1px 1px 0px #ffffff;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1.5;
+            justify-content: flex-end;
+        }
+
+        /* Standardized Retro Sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 130px;
+            background: #a0a0a0;
+            height: 6px;
+            border-top: 1px solid #404040;
+            border-left: 1px solid #404040;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 18px;
+            background-color: #d4d0c8;
+            border-top: 1px solid #fff;
+            border-left: 1px solid #fff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            cursor: pointer;
+            box-shadow: inset 1px 1px 1px #fff;
+        }
+
+        input[type="number"] {
+            width: 45px;
+            background: #ffffff;
+            color: #000000;
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            padding: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .file-upload-box {
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            background: #ffffff;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+
+        /* Custom Retro Audio Terminal Deck */
+        .media-block {
+            margin: 12px 0;
+            padding: 12px;
+            background-color: #cbd2d6;
+            border: 2px inset #fff;
+        }
+        .media-block h4 {
+            margin: 0 0 8px 0;
+            text-shadow: 1px 1px 0px #ffffff;
+        }
+
+        /* Transport controls bar setup */
+        .transport-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+            background: #d4d0c8;
+            padding: 4px;
+            border: 1px solid #777;
+        }
+
+        .transport-btn {
+            background: #d4d0c8;
+            border-top: 1px solid #fff;
+            border-left: 1px solid #fff;
+            border-right: 1px solid #404040;
+            border-bottom: 1px solid #404040;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 10px;
+            cursor: pointer;
+        }
+        .transport-btn:active {
+            border-top: 1px solid #404040;
+            border-left: 1px solid #404040;
+            border-right: 1px solid #fff;
+            border-bottom: 1px solid #fff;
+        }
+
+        .vol-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        .vol-container input[type="range"] {
+            width: 80px;
+        }
+
+        /* Green Terminal Canvas Screens Frame */
+        .preview-frame {
+            border-top: 3px solid #404040;
+            border-left: 3px solid #404040;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            background: #000000;
+            padding: 6px;
+            margin-top: 10px;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        canvas {
+            width: 100%;
+            display: none;
+            image-rendering: pixelated;
+        }
+        #scopeCanvas { height: 70px; margin-bottom: 4px;}
+        #timelineCanvas { height: 45px; cursor: pointer; border-top: 1px solid #004400; }
+
+        .status-text {
+            animation: blink 1.5s infinite steps(2);
+        }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .action-btn {
+            margin-top: 10px;
+            width: 100%;
+            background-color: #d4d0c8;
+            border-top: 2px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            padding: 10px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: inset 1px 1px 0px #fff;
+        }
+        .action-btn:active {
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            box-shadow: none;
+        }
+
+        .warn-msg {
+            color: #a00000;
+            font-weight: bold;
+            margin-top: 8px;
+            font-size: 11px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-window">
+        <div class="title-bar">LIMINAL DEGRADATION MODULE v3.40</div>
+
+        <div class="file-upload-box">
+            <input type="file" id="audioLoader" accept="audio/*">
+        </div>
+
+        <div class="media-block" id="outputDeck" style="display:none;">
+            <h4>[RENDERED TRANSMISSION PLAYER]</h4>
+            <div class="transport-bar">
+                <button class="transport-btn" id="outPlay">PLAY</button>
+                <button class="transport-btn" id="outPause">PAUSE</button>
+                <button class="transport-btn" id="outStop">STOP</button>
+                <div class="vol-container">
+                    <span>VOL:</span>
+                    <input type="range" id="outVol" min="0" max="100" value="85">
+                </div>
+            </div>
+            <button class="action-btn" id="downloadBtn">DOWNLOAD EDITED TAPE (.MP3)</button>
+            <div id="reprocessWarning" class="warn-msg">⚠️ Settings modified! Click "GENERATE DEGRADED TAPE" to reprocess file.</div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="control-group">
+                <label for="age">Muffled Age (Lowpass):</label>
+                <div class="input-wrapper">
+                    <input type="range" id="age" min="0" max="100" value="40">
+                    <input type="number" id="ageNum" min="0" max="100" value="40">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="radio">Vintage Radio (Highpass):</label>
+                <div class="input-wrapper">
+                    <input type="range" id="radio" min="0" max="100" value="0">
+                    <input type="number" id="radioNum" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="reverb">Liminal Reverb (Space):</label>
+                <div class="input-wrapper">
+                    <input type="range" id="reverb" min="0" max="100" value="15">
+                    <input type="number" id="reverbNum" min="0" max="100" value="15">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="delay">Tape Delay (Echo):</label>
+                <div class="input-wrapper">
+                    <input type="range" id="delay" min="0" max="100" value="2">
+                    <input type="number" id="delayNum" min="0" max="100" value="2">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="pitch">Tape Speed (Pitch Shift):</label>
+                <div class="input-wrapper">
+                    <input type="range" id="pitch" min="50" max="150" value="100">
+                    <input type="number" id="pitchNum" min="50" max="150" value="100">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="noise">Fluorescent Buzz Hum:</label>
+                <div class="input-wrapper">
+                    <input type="range" id="noise" min="0" max="100" value="30">
+                    <input type="number" id="noiseNum" min="0" max="100" value="30">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="whiteNoise">Tape Static (White Noise):</label>
+                <div class="input-wrapper">
+                    <input type="range" id="whiteNoise" min="0" max="100" value="15">
+                    <input type="number" id="whiteNoiseNum" min="0" max="100" value="15">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="glitch">Tape Glitch Frequency:</label>
+                <div class="input-wrapper">
+                    <input type="range" id="glitch" min="0" max="100" value="25">
+                    <input type="number" id="glitchNum" min="0" max="100" value="25">
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-frame">
+            <div id="statusDisplay" class="status-text">SYSTEM IDLE - INSERT AUDIO TAPE</div>
+            <canvas id="scopeCanvas"></canvas>
+            <canvas id="timelineCanvas"></canvas>
+        </div>
+
+        <div class="transport-bar" id="liveTransport" style="display:none; margin-top:10px;">
+            <button class="transport-btn" id="playBtn">PLAY MONITOR</button>
+            <button class="transport-btn" id="pauseBtn" style="display:none;">PAUSE</button>
+            <button class="transport-btn" id="stopBtn" style="display:none;">STOP</button>
+            <div class="vol-container">
+                <span>MONITOR VOL:</span>
+                <input type="range" id="liveVol" min="0" max="100" value="85">
+            </div>
+        </div>
+
+        <button class="action-btn" id="bakeBtn" style="display:none; background-color: #b8b0a8;">GENERATE DEGRADED TAPE</button>
+    </div>
+
+    <script>
+        const audioLoader = document.getElementById('audioLoader');
+        const statusDisplay = document.getElementById('statusDisplay');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const liveTransport = document.getElementById('liveTransport');
+        const liveVol = document.getElementById('liveVol');
+        const bakeBtn = document.getElementById('bakeBtn');
+        
+        const outputDeck = document.getElementById('outputDeck');
+        const outPlay = document.getElementById('outPlay');
+        const outPause = document.getElementById('outPause');
+        const outStop = document.getElementById('outStop');
+        const outVol = document.getElementById('outVol');
+        
+        const downloadBtn = document.getElementById('downloadBtn');
+        const reprocessWarning = document.getElementById('reprocessWarning');
+        
+        const scopeCanvas = document.getElementById('scopeCanvas');
+        const scopeCtx = scopeCanvas.getContext('2d');
+        const timelineCanvas = document.getElementById('timelineCanvas');
+        const timelineCtx = timelineCanvas.getContext('2d');
+
+        const sliders = ['age', 'radio', 'reverb', 'delay', 'pitch', 'noise', 'whiteNoise', 'glitch'];
+        let activeBakeDataUri = null;
+        let bakedAudioElement = new Audio();
+        
+        sliders.forEach(id => {
+            const range = document.getElementById(id);
+            const num = document.getElementById(id + 'Num');
+            range.addEventListener('input', (e) => { num.value = e.target.value; updateAudioParameters(); flagSettingsChanged(); });
+            num.addEventListener('input', (e) => {
+                let val = parseInt(e.target.value) || 0;
+                let min = parseInt(range.min), max = parseInt(range.max);
+                if(val < min) val = min; if(val > max) val = max;
+                range.value = val; updateAudioParameters(); flagSettingsChanged();
+            });
+        });
+
+        function flagSettingsChanged() {
+            if (outputDeck.style.display === "block") {
+                reprocessWarning.style.display = "block";
+            }
+        }
+
+        // Web Audio Core variables
+        let audioCtx;
+        let audioBuffer = null;
+        let sourceNode = null;
+        let masterGainNode = null;
+        let filterNode = null;
+        let highpassNode = null;
+        let delayGainNode = null;
+        let reverbNode = null;
+        let reverbGainNode = null;
+        let noiseGainNode = null;
+        let noiseSource = null;
+        let whiteNoiseGainNode = null;
+        let whiteNoiseSource = null;
+        let glitchInterval = null;
+        let analyzerNode = null;
+        let drawVisual = null;
+
+        // Playback tracking parameters
+        let isPlaying = false;
+        let isPaused = false;
+        let pauseOffset = 0;      // Track clean target frame position natively in seconds
+        let trackStartTime = 0;   // Audio reference window anchor clock position
+        let currentPitchRatio = 1.0;
+
+        audioLoader.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            stopAudioPlayback();
+            statusDisplay.style.display = "block";
+            scopeCanvas.style.display = "none";
+            timelineCanvas.style.display = "none";
+            statusDisplay.textContent = "LOADING DATA TAPE...";
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                audioCtx.decodeAudioData(event.target.result, function(buffer) {
+                    audioBuffer = buffer;
+                    statusDisplay.textContent = "SIGNAL ACQUIRED. READY FOR MODULATION.";
+                    liveTransport.style.display = "flex";
+                    playBtn.style.display = "inline-block";
+                    pauseBtn.style.display = "none";
+                    stopBtn.style.display = "none";
+                    bakeBtn.style.display = "block";
+                    
+                    renderStaticTimelineWave();
+                }, function(err) {
+                    statusDisplay.textContent = "DECODING ERROR.";
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function createReverbImpulseResponse(context) {
+            const sampleRate = context.sampleRate;
+            const length = sampleRate * 2.5; 
+            const impulse = context.createBuffer(2, length, sampleRate);
+            for (let channel = 0; channel < impulse.numberOfChannels; channel++) {
+                const data = impulse.getChannelData(channel);
+                for (let i = 0; i < length; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.0);
+                }
+            }
+            return impulse;
+        }
+
+        function startAudioPlayback() {
+            if (!audioBuffer || isPlaying) return;
+
+            if(bakedAudioElement) bakedAudioElement.pause();
+
+            currentPitchRatio = parseInt(document.getElementById('pitch').value) / 100;
+
+            sourceNode = audioCtx.createBufferSource();
+            sourceNode.buffer = audioBuffer;
+            
+            masterGainNode = audioCtx.createGain();
+            filterNode = audioCtx.createBiquadFilter();
+            filterNode.type = 'lowpass';
+            highpassNode = audioCtx.createBiquadFilter();
+            highpassNode.type = 'highpass';
+
+            reverbNode = audioCtx.createConvolver();
+            reverbNode.buffer = createReverbImpulseResponse(audioCtx);
+            reverbGainNode = audioCtx.createGain();
+
+            const delayNode = audioCtx.createDelay();
+            delayNode.delayTime.value = 0.40;
+            const delayFeedback = audioCtx.createGain();
+            delayGainNode = audioCtx.createGain();
+            
+            sourceNode.connect(delayNode);
+            delayNode.connect(delayFeedback);
+            delayFeedback.connect(delayNode);
+            delayNode.connect(delayGainNode);
+            delayGainNode.connect(masterGainNode);
+
+            noiseSource = audioCtx.createOscillator();
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseGainNode = audioCtx.createGain();
+            noiseSource.type = 'sawtooth';
+            noiseSource.frequency.value = 60;
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.value = 120;
+            noiseSource.connect(noiseFilter);
+            noiseFilter.connect(noiseGainNode);
+            noiseGainNode.connect(masterGainNode);
+            noiseSource.start();
+
+            const bufSize = 2 * audioCtx.sampleRate;
+            const noiseBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+            const output = noiseBuf.getChannelData(0);
+            for (let i = 0; i < bufSize; i++) output[i] = Math.random() * 2 - 1;
+            whiteNoiseSource = audioCtx.createBufferSource();
+            whiteNoiseSource.buffer = noiseBuf;
+            whiteNoiseSource.loop = true;
+            whiteNoiseGainNode = audioCtx.createGain();
+            whiteNoiseSource.connect(whiteNoiseGainNode);
+            whiteNoiseGainNode.connect(masterGainNode);
+            whiteNoiseSource.start();
+
+            analyzerNode = audioCtx.createAnalyser();
+            analyzerNode.fftSize = 64; 
+
+            sourceNode.connect(filterNode);
+            filterNode.connect(highpassNode);
+            
+            highpassNode.connect(reverbNode);
+            reverbNode.connect(reverbGainNode);
+            reverbGainNode.connect(masterGainNode);
+
+            highpassNode.connect(analyzerNode);
+            analyzerNode.connect(masterGainNode);
+            masterGainNode.connect(audioCtx.destination);
+
+            updateAudioParameters();
+            delayFeedback.gain.value = 0.55;
+
+            // Strict time-stamp accounting logic map
+            trackStartTime = audioCtx.currentTime;
+            sourceNode.start(0, pauseOffset);
+            
+            sourceNode.onended = function() {
+                // Safely catch natural file runtime closure drops
+                if (isPlaying && !isPaused) {
+                    const elapsed = (audioCtx.currentTime - trackStartTime) * currentPitchRatio;
+                    if (pauseOffset + elapsed >= audioBuffer.duration - 0.1) {
+                        stopAudioPlayback();
+                    }
+                }
+            };
+
+            isPlaying = true;
+            isPaused = false;
+
+            startGlitchEngine();
+            startVisualizerGrid();
+
+            statusDisplay.style.display = "none";
+            scopeCanvas.style.display = "block";
+            timelineCanvas.style.display = "block";
+            
+            playBtn.style.display = "none";
+            pauseBtn.style.display = "inline-block";
+            stopBtn.style.display = "inline-block";
+        }
+
+        function pauseAudioPlayback() {
+            if (!isPlaying || isPaused) return;
+            clearInterval(glitchInterval);
+            cancelAnimationFrame(drawVisual);
+            
+            // Calculate absolute elapsed position taking the pitch multiplier ratio scale into account
+            const elapsed = (audioCtx.currentTime - trackStartTime) * currentPitchRatio;
+            pauseOffset += elapsed;
+            if (pauseOffset > audioBuffer.duration) pauseOffset = 0;
+            
+            isPaused = true;
+            isPlaying = false;
+
+            if (sourceNode) { try{sourceNode.stop();}catch(e){} sourceNode.disconnect(); sourceNode = null; }
+            if (noiseSource) { try{noiseSource.stop();}catch(e){} noiseSource.disconnect(); }
+            if (whiteNoiseSource) { try{whiteNoiseSource.stop();}catch(e){} whiteNoiseSource.disconnect(); }
+            
+            playBtn.style.display = "inline-block";
+            pauseBtn.style.display = "none";
+            statusDisplay.style.display = "block";
+            scopeCanvas.style.display = "none";
+            statusDisplay.textContent = "MONITOR PAUSED.";
+        }
+
+        function stopAudioPlayback() {
+            clearInterval(glitchInterval);
+            cancelAnimationFrame(drawVisual);
+            pauseOffset = 0;
+            isPlaying = false;
+            isPaused = false;
+
+            if (sourceNode) { try{sourceNode.stop();}catch(e){} sourceNode.disconnect(); sourceNode = null; }
+            if (noiseSource) { try{noiseSource.stop();}catch(e){} noiseSource.disconnect(); }
+            if (whiteNoiseSource) { try{whiteNoiseSource.stop();}catch(e){} whiteNoiseSource.disconnect(); }
+            
+            statusDisplay.style.display = "block";
+            scopeCanvas.style.display = "none";
+            if(audioBuffer) {
+                statusDisplay.textContent = "MONITOR TRACK DECK TERMINATED.";
+                timelineCanvas.style.display = "block";
+                renderStaticTimelineWave();
+            } else {
+                statusDisplay.textContent = "SYSTEM IDLE - INSERT AUDIO TAPE";
+                timelineCanvas.style.display = "none";
+            }
+
+            playBtn.style.display = "inline-block";
+            pauseBtn.style.display = "none";
+            stopBtn.style.display = "none";
+        }
+
+        function updateAudioParameters() {
+            if (!audioCtx) return;
+
+            if (masterGainNode) {
+                masterGainNode.gain.setValueAtTime(liveVol.value / 100, audioCtx.currentTime);
+            }
+
+            const ageVal = parseInt(document.getElementById('age').value);
+            if (filterNode) {
+                const cutoff = 18000 * Math.pow(0.01, ageVal / 100);
+                filterNode.frequency.setValueAtTime(Math.max(250, cutoff), audioCtx.currentTime);
+            }
+
+            const radioVal = parseInt(document.getElementById('radio').value);
+            if (highpassNode) {
+                highpassNode.frequency.setValueAtTime(10 + (radioVal * 28), audioCtx.currentTime);
+            }
+
+            const pitchVal = parseInt(document.getElementById('pitch').value);
+            const nextPitchRatio = pitchVal / 100;
+            
+            if (sourceNode && isPlaying) {
+                // Recalculate context anchor offset timelines mid-flight when user drags pitch wheel live
+                const elapsed = (audioCtx.currentTime - trackStartTime) * currentPitchRatio;
+                pauseOffset += elapsed;
+                trackStartTime = audioCtx.currentTime;
+                currentPitchRatio = nextPitchRatio;
+                
+                sourceNode.playbackRate.setValueAtTime(currentPitchRatio, audioCtx.currentTime);
+            } else {
+                currentPitchRatio = nextPitchRatio;
+            }
+
+            const reverbVal = parseInt(document.getElementById('reverb').value);
+            if (reverbGainNode) {
+                reverbGainNode.gain.setValueAtTime((reverbVal / 100) * 1.5, audioCtx.currentTime);
+            }
+
+            const delayVal = parseInt(document.getElementById('delay').value);
+            if (delayGainNode) {
+                delayGainNode.gain.setValueAtTime((delayVal / 100) * 0.8, audioCtx.currentTime);
+            }
+
+            const noiseVal = parseInt(document.getElementById('noise').value);
+            if (noiseGainNode) {
+                noiseGainNode.gain.setValueAtTime((noiseVal / 100) * 0.12, audioCtx.currentTime);
+            }
+
+            const whiteNoiseVal = parseInt(document.getElementById('whiteNoise').value);
+            if (whiteNoiseGainNode) {
+                whiteNoiseGainNode.gain.setValueAtTime((whiteNoiseVal / 100) * 0.05, audioCtx.currentTime);
+            }
+        }
+
+        liveVol.addEventListener('input', updateAudioParameters);
+
+        function startGlitchEngine() {
+            clearInterval(glitchInterval);
+            glitchInterval = setInterval(() => {
+                const glitchFreq = parseInt(document.getElementById('glitch').value);
+                if (glitchFreq === 0 || !sourceNode || isPaused || !isPlaying) return;
+
+                if (Math.random() * 100 < glitchFreq) {
+                    const glitchType = Math.random();
+                    if (glitchType < 0.4) {
+                        sourceNode.playbackRate.setValueAtTime(currentPitchRatio * 0.5, audioCtx.currentTime);
+                        setTimeout(() => { if(sourceNode && isPlaying && !isPaused) sourceNode.playbackRate.setValueAtTime(currentPitchRatio, audioCtx.currentTime); }, 100 + Math.random() * 150);
+                    } else if (glitchType < 0.8) {
+                        if (filterNode) {
+                            filterNode.frequency.setValueAtTime(80, audioCtx.currentTime);
+                            setTimeout(() => { updateAudioParameters(); }, 50 + Math.random() * 100);
+                        }
+                    }
+                }
+            }, 500);
+        }
+
+        function startVisualizerGrid() {
+            const bufferLength = analyzerNode.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            
+            scopeCanvas.width = 400;
+            scopeCanvas.height = 70;
+
+            function draw() {
+                if (!isPlaying || isPaused) return;
+                drawVisual = requestAnimationFrame(draw);
+                analyzerNode.getByteTimeDomainData(dataArray);
+
+                scopeCtx.fillStyle = '#000000';
+                scopeCtx.fillRect(0, 0, scopeCanvas.width, scopeCanvas.height);
+
+                const blockWidth = 8; 
+                const blockHeight = 6;
+                const cols = scopeCanvas.width / blockWidth;
+
+                scopeCtx.fillStyle = '#00ff00';
+                for (let i = 0; i < cols; i++) {
+                    const dataIdx = Math.floor((i / cols) * bufferLength);
+                    const v = dataArray[dataIdx] / 128.0; 
+                    const y = (v * scopeCanvas.height / 2);
+                    const snappedY = Math.floor(y / blockHeight) * blockHeight;
+                    scopeCtx.fillRect(i * blockWidth, snappedY, blockWidth - 2, blockHeight - 2);
+                }
+                
+                renderStaticTimelineWave();
+            }
+            draw();
+        }
+
+        function renderStaticTimelineWave() {
+            timelineCanvas.width = 400;
+            timelineCanvas.height = 45;
+
+            timelineCtx.fillStyle = '#000000';
+            timelineCtx.fillRect(0, 0, timelineCanvas.width, timelineCanvas.height);
+
+            if (!audioBuffer) return;
+
+            const data = audioBuffer.getChannelData(0);
+            const step = Math.ceil(data.length / timelineCanvas.width);
+            const amp = timelineCanvas.height / 2;
+
+            timelineCtx.fillStyle = '#004400'; 
+            for (let i = 0; i < timelineCanvas.width; i++) {
+                let min = 1.0, max = -1.0;
+                for (let j = 0; j < step; j++) {
+                    const dat = data[(i * step) + j];
+                    if (dat < min) min = dat;
+                    if (dat > max) max = dat;
+                }
+                timelineCtx.fillRect(i, amp + (min * amp), 1, (max - min) * amp);
+            }
+
+            let currentProgress = 0;
+            if (isPlaying && !isPaused) {
+                const elapsed = (audioCtx.currentTime - trackStartTime) * currentPitchRatio;
+                currentProgress = ((pauseOffset + elapsed) % audioBuffer.duration) / audioBuffer.duration;
+            } else {
+                currentProgress = (pauseOffset) / audioBuffer.duration;
+            }
+
+            const cursorX = Math.floor(currentProgress * timelineCanvas.width);
+            timelineCtx.fillStyle = '#00ff00'; 
+            timelineCtx.fillRect(cursorX, 0, 2, timelineCanvas.height);
+        }
+
+        // ABSOLUTE REAL-TIME TIMELINE SEEKING FIX
+        timelineCanvas.addEventListener('click', function(e) {
+            if (!audioBuffer) return;
+            const rect = timelineCanvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            
+            // Instantly override the running tracking target millisecond frames 
+            const targetOffset = percentage * audioBuffer.duration;
+
+            if (isPlaying && !isPaused) {
+                // 1. Immediately drop the outdated processing line node block cleanly
+                if (sourceNode) {
+                    try { sourceNode.stop(); } catch(err) {}
+                    sourceNode.disconnect();
+                    sourceNode = null;
+                }
+                
+                // 2. Refresh assignment positions natively
+                pauseOffset = targetOffset;
+                trackStartTime = audioCtx.currentTime;
+                currentPitchRatio = parseInt(document.getElementById('pitch').value) / 100;
+
+                // 3. Sprout replacement sound-generation instance mapping frame parameters instantly
+                sourceNode = audioCtx.createBufferSource();
+                sourceNode.buffer = audioBuffer;
+                sourceNode.playbackRate.value = currentPitchRatio;
+                
+                // 4. Hook back into our running pipeline
+                sourceNode.connect(filterNode);
+                sourceNode.start(0, pauseOffset);
+                
+                sourceNode.onended = function() {
+                    if (isPlaying && !isPaused) {
+                        const elapsed = (audioCtx.currentTime - trackStartTime) * currentPitchRatio;
+                        if (pauseOffset + elapsed >= audioBuffer.duration - 0.1) {
+                            stopAudioPlayback();
+                        }
+                    }
+                };
+            } else {
+                // Move position while paused/stopped cleanly
+                pauseOffset = targetOffset;
+                renderStaticTimelineWave();
+            }
+        });
+
+        // BACKGROUND EXPORT PROCESS (NO STREAM INTERRUPTION)
+        bakeBtn.addEventListener('click', function() {
+            if (!audioBuffer) return;
+            
+            bakeBtn.disabled = true;
+            bakeBtn.style.backgroundColor = "#888888";
+            bakeBtn.textContent = "[ BAKING DATA TAPE... 0% ]";
+            
+            const ageVal = parseInt(document.getElementById('age').value);
+            const radioVal = parseInt(document.getElementById('radio').value);
+            const pitchVal = parseInt(document.getElementById('pitch').value) / 100;
+            const reverbVal = parseInt(document.getElementById('reverb').value);
+            const delayVal = parseInt(document.getElementById('delay').value);
+            const noiseVal = parseInt(document.getElementById('noise').value);
+            const whiteNoiseVal = parseInt(document.getElementById('whiteNoise').value);
+
+            const duration = (audioBuffer.duration / pitchVal) + 1.0; 
+            const sampleRate = audioCtx.sampleRate;
+            
+            const offlineCtx = new OfflineAudioContext(2, sampleRate * duration, sampleRate);
+
+            const bSource = offlineCtx.createBufferSource();
+            bSource.buffer = audioBuffer;
+            bSource.playbackRate.value = pitchVal;
+
+            const bFilter = offlineCtx.createBiquadFilter();
+            bFilter.type = 'lowpass';
+            const cutoff = 18000 * Math.pow(0.01, ageVal / 100);
+            bFilter.frequency.value = Math.max(250, cutoff);
+
+            const bHighpass = offlineCtx.createBiquadFilter();
+            bHighpass.type = 'highpass';
+            bHighpass.frequency.value = 10 + (radioVal * 28);
+
+            const bReverbNode = offlineCtx.createConvolver();
+            bReverbNode.buffer = createReverbImpulseResponse(offlineCtx);
+            const bReverbGain = offlineCtx.createGain();
+            bReverbGain.gain.value = (reverbVal / 100) * 1.5;
+
+            const bDelay = offlineCtx.createDelay();
+            bDelay.delayTime.value = 0.40;
+            const bDelayFeed = offlineCtx.createGain();
+            bDelayFeed.gain.value = 0.45;
+            const bDelayGain = offlineCtx.createGain();
+            bDelayGain.gain.value = (delayVal / 100) * 0.8;
+
+            bSource.connect(bDelay);
+            bDelay.connect(bDelayFeed);
+            bDelayFeed.connect(bDelay);
+            bDelay.connect(bDelayGain);
+            bDelayGain.connect(offlineCtx.destination);
+
+            const bNoiseOsc = offlineCtx.createOscillator();
+            const bNoiseFilt = offlineCtx.createBiquadFilter();
+            const bNoiseGain = offlineCtx.createGain();
+            bNoiseOsc.type = 'sawtooth';
+            bNoiseOsc.frequency.value = 60;
+            bNoiseFilt.type = 'bandpass';
+            bNoiseFilt.frequency.value = 120;
+            bNoiseGain.gain.value = (noiseVal / 100) * 0.08;
+            bNoiseOsc.connect(bNoiseFilt);
+            bNoiseFilt.connect(bNoiseGain);
+            bNoiseGain.connect(offlineCtx.destination);
+
+            const noiseBufSize = 2 * sampleRate;
+            const noiseBuf = offlineCtx.createBuffer(1, noiseBufSize, sampleRate);
+            const noiseBufData = noiseBuf.getChannelData(0);
+            for(let i=0; i<noiseBufSize; i++) noiseBufData[i] = Math.random() * 2 - 1;
+            const bWhiteSource = offlineCtx.createBufferSource();
+            bWhiteSource.buffer = noiseBuf;
+            bWhiteSource.loop = true;
+            const bWhiteGain = offlineCtx.createGain();
+            bWhiteGain.gain.value = (whiteNoiseVal / 100) * 0.03;
+            bWhiteSource.connect(bWhiteGain);
+            bWhiteGain.connect(offlineCtx.destination);
+
+            bSource.connect(bFilter);
+            bFilter.connect(bHighpass);
+            
+            bHighpass.connect(bReverbNode);
+            bReverbNode.connect(bReverbGain);
+            bReverbGain.connect(offlineCtx.destination);
+
+            bHighpass.connect(offlineCtx.destination);
+
+            bSource.start(0);
+            bNoiseOsc.start(0);
+            bWhiteSource.start(0);
+
+            let progression = 0;
+            let intervalTracker = setInterval(() => {
+                progression += 15;
+                if(progression > 95) progression = 98;
+                bakeBtn.textContent = `[ BAKING DATA TAPE... ${progression}% ]`;
+            }, 150);
+
+            offlineCtx.startRendering().then(function(renderedBuffer) {
+                clearInterval(intervalTracker);
+                bakeBtn.textContent = `[ BAKING DATA TAPE... 100% ]`;
+                
+                setTimeout(() => {
+                    const mp3DataUri = bufferToMp3DataUri(renderedBuffer);
+                    activeBakeDataUri = mp3DataUri;
+                    
+                    bakedAudioElement.src = mp3DataUri;
+                    outputDeck.style.display = "block";
+                    reprocessWarning.style.display = "none";
+                    
+                    bakeBtn.disabled = false;
+                    bakeBtn.style.backgroundColor = "#b8b0a8";
+                    bakeBtn.textContent = "GENERATE DEGRADED TAPE";
+                }, 300);
+            });
+        });
+
+        outPlay.addEventListener('click', () => { bakedAudioElement.play(); });
+        outPause.addEventListener('click', () => { bakedAudioElement.pause(); });
+        outStop.addEventListener('click', () => { bakedAudioElement.pause(); bakedAudioElement.currentTime = 0; });
+        outVol.addEventListener('input', (e) => { bakedAudioElement.volume = e.target.value / 100; });
+
+        downloadBtn.addEventListener('click', function() {
+            if (!activeBakeDataUri) return;
+            const link = document.createElement('a');
+            link.href = activeBakeDataUri;
+            link.download = 'backrooms_degraded_tape.mp3';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        playBtn.addEventListener('click', startAudioPlayback);
+        pauseBtn.addEventListener('click', pauseAudioPlayback);
+        stopBtn.addEventListener('click', stopAudioPlayback);
+
+        function bufferToMp3DataUri(buffer) {
+            let numOfChan = buffer.numberOfChannels,
+                length = buffer.length * numOfChan * 2 + 44,
+                bufferArr = new ArrayBuffer(length),
+                view = new DataView(bufferArr),
+                channels = [], i, sample, offset = 0, pos = 0;
+
+            function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+            function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+            setUint32(0x46464952); pos += 4; 
+            setUint32(length - 8);
+            setUint32(0x45564157); pos += 4; 
+            setUint32(0x20746d66); pos += 4; 
+            setUint32(16);
+            setUint16(1); 
+            setUint16(numOfChan);
+            setUint32(buffer.sampleRate);
+            setUint32(buffer.sampleRate * 2 * numOfChan);
+            setUint16(numOfChan * 2);
+            setUint16(16); 
+            setUint32(0x61746164); pos += 4; 
+            setUint32(length - pos - 4);
+
+            for (i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
+
+            while (pos < length) {
+                for (i = 0; i < numOfChan; i++) {
+                    sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                    view.setInt16(pos, sample, true); pos += 2;
+                }
+                offset++;
+            }
+
+            let binary = '';
+            let bytes = new Uint8Array(bufferArr);
+            let len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return 'data:audio/mp3;base64,' + btoa(binary);
+        }
+    </script>
+</body>
+</html>
